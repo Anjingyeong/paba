@@ -44,4 +44,13 @@ python -m uv run pytest -q
 step "e2e: Playwright + axe (chromium)"
 bun run test:e2e -- --project=chromium
 
+if command -v terraform >/dev/null 2>&1; then
+  step "infra: terraform fmt + validate"
+  terraform -chdir=infra/terraform fmt -check -recursive
+  terraform -chdir=infra/terraform init -backend=false -input=false >/dev/null
+  terraform -chdir=infra/terraform validate
+else
+  step "infra: terraform (skipped — not installed locally; runs in CI)"
+fi
+
 printf '\nAll verification gates passed.\n'
