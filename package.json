@@ -1,0 +1,19 @@
+{
+  "name": "paris-baguette-payroll-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun build ./assets/ts/main.ts --outdir ./assets/vendor --target browser --minify",
+    "typecheck": "tsc --noEmit",
+    "biome": "biome check assets"
+  },
+  "dependencies": {
+    "@carbon/web-components": "^2.22.0",
+    "lit": "^3.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "typescript": "^5.6.0"
+  }
+}

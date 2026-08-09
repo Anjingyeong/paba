@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.uvcache/
+*.egg-info/
+
+# Env & secrets
+.env
+*.pem
+*.key
+
+# Django
+staticfiles/
+media/
+*.log
+
+# Node / Bun
+node_modules/
+assets/vendor/
+
+# Evidence & scratch
+.omo/evidence/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NEVER commit the original workbooks or any real PII
+급여명세서.*.xlsx
+
+# External codegraph symlink
+.codegraph/

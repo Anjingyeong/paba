@@ -1,0 +1,36 @@
+# Reference/local orchestration. On machines without Docker, run PostgreSQL 18
+# natively and point the app at it via .env (see README). This file documents the
+# canonical topology and lets Docker users reproduce it with a single command.
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-paris_baguette}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+      POSTGRES_HOST: db
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
