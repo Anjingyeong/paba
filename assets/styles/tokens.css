@@ -1,0 +1,85 @@
+/*
+ * Design tokens — single source of truth for color/type/space/state.
+ * Light theme on bare :root; dark under prefers-color-scheme AND [data-theme].
+ * See DESIGN.md for the role table and rationale.
+ */
+
+:root {
+  --pb-background: #f4f4f4;
+  --pb-layer: #ffffff;
+  --pb-layer-accent: #e8e8e8;
+  --pb-field: #ffffff;
+  --pb-border: #8d8d8d;
+  --pb-text: #161616;
+  --pb-text-secondary: #525252;
+  --pb-interactive: #0f62fe;
+  --pb-on-interactive: #ffffff;
+  --pb-support-error: #da1e28;
+  --pb-support-success: #198038;
+  --pb-support-warning: #b28600;
+
+  --pb-font: "IBM Plex Sans", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui,
+    sans-serif;
+
+  --pb-type-caption: 0.75rem;
+  --pb-type-body: 1rem;
+  --pb-type-body-lg: 1.125rem;
+  --pb-type-h3: 1.25rem;
+  --pb-type-h2: 1.5rem;
+  --pb-type-h1: 2rem;
+  --pb-type-display: 2.625rem;
+
+  --pb-space-1: 0.125rem;
+  --pb-space-2: 0.25rem;
+  --pb-space-3: 0.5rem;
+  --pb-space-4: 0.75rem;
+  --pb-space-5: 1rem;
+  --pb-space-6: 1.5rem;
+  --pb-space-7: 2rem;
+  --pb-space-8: 3rem;
+
+  --pb-radius: 4px;
+  --pb-target-min: 44px;
+  --pb-sidenav-width: 16rem;
+  --pb-read-max: 40rem;
+
+  --pb-shadow-overlay: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --pb-z-sticky: 100;
+  --pb-z-overlay: 1000;
+  --pb-z-toast: 1100;
+
+  --pb-focus-width: 2px;
+  --pb-transition: 120ms ease;
+}
+
+:root:not([data-theme="light"]) {
+  @media (prefers-color-scheme: dark) {
+    --pb-background: #161616;
+    --pb-layer: #262626;
+    --pb-layer-accent: #393939;
+    --pb-field: #393939;
+    --pb-border: #6f6f6f;
+    --pb-text: #f4f4f4;
+    --pb-text-secondary: #c6c6c6;
+    --pb-interactive: #4589ff;
+    --pb-on-interactive: #161616;
+    --pb-support-error: #ff8389;
+    --pb-support-success: #42be65;
+    --pb-support-warning: #f1c21b;
+  }
+}
+
+:root[data-theme="dark"] {
+  --pb-background: #161616;
+  --pb-layer: #262626;
+  --pb-layer-accent: #393939;
+  --pb-field: #393939;
+  --pb-border: #6f6f6f;
+  --pb-text: #f4f4f4;
+  --pb-text-secondary: #c6c6c6;
+  --pb-interactive: #4589ff;
+  --pb-on-interactive: #161616;
+  --pb-support-error: #ff8389;
+  --pb-support-success: #42be65;
+  --pb-support-warning: #f1c21b;
+}

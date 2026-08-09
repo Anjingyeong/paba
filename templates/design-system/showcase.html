@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>파리바게트 디자인 시스템 쇼케이스</title>
+  <link rel="stylesheet" href="/assets/styles/tokens.css" />
+  <link rel="stylesheet" href="/assets/styles/app.css" />
+</head>
+<body>
+  <header class="pb-page">
+    <h1>디자인 시스템 쇼케이스</h1>
+    <button type="button" class="pb-btn pb-btn--secondary" data-theme-toggle aria-pressed="false">
+      라이트/다크 전환
+    </button>
+  </header>
+
+  <main class="pb-page">
+    <section class="pb-section" aria-labelledby="personas-h">
+      <h2 id="personas-h">대상 페르소나</h2>
+      <ul>
+        <li>바쁜 공유-태블릿 직원</li>
+        <li>월마감 점장</li>
+        <li>저시력/키보드 사용자</li>
+        <li>한 손 사용 제약 사용자</li>
+      </ul>
+    </section>
+
+    <section class="pb-section" aria-labelledby="form-h">
+      <h2 id="form-h">폼 요소</h2>
+      <form>
+        <label class="pb-field">
+          <span>직원코드</span>
+          <input class="pb-input" name="employee_code" autocomplete="off" />
+        </label>
+        <label class="pb-field">
+          <span>표시명</span>
+          <input class="pb-input" name="display_name" />
+        </label>
+        <button type="button" class="pb-btn">저장</button>
+        <button type="button" class="pb-btn pb-btn--secondary">취소</button>
+        <button type="button" class="pb-btn" disabled>승인(비활성)</button>
+        <p><cds-button>Carbon 버튼</cds-button></p>
+      </form>
+    </section>
+
+    <section class="pb-section" aria-labelledby="status-h">
+      <h2 id="status-h">상태 표시 (색상 단독 사용 금지)</h2>
+      <p class="pb-status pb-status--success"><span class="pb-status__dot"></span>✔ 승인됨</p>
+      <p class="pb-status pb-status--warning"><span class="pb-status__dot"></span>⚠ 주휴 확정 필요</p>
+      <p class="pb-status pb-status--error"><span class="pb-status__dot"></span>✕ 미승인 정정 있음</p>
+    </section>
+
+    <section class="pb-section" aria-labelledby="table-h">
+      <h2 id="table-h">데이터 테이블 (모바일에서 카드로 전환)</h2>
+      <div class="pb-table-wrap">
+        <table class="pb-table">
+          <thead>
+            <tr><th scope="col">직원</th><th scope="col">지급시간</th><th scope="col">상태</th></tr>
+          </thead>
+          <tbody>
+            <tr><td data-label="직원">직원 A</td><td data-label="지급시간">160.00</td><td data-label="상태">승인</td></tr>
+            <tr><td data-label="직원">직원 B</td><td data-label="지급시간">78.50</td><td data-label="상태">검토</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="pb-section" aria-labelledby="kiosk-h">
+      <h2 id="kiosk-h">키오스크 커버 (개념)</h2>
+      <div class="pb-concepts">
+        <figure>
+          <figcaption>키오스크 — 단일 액션 커버</figcaption>
+          <div style="position: relative; height: 12rem; border: 1px solid var(--pb-border); border-radius: var(--pb-radius); overflow: hidden;">
+            <div class="pb-kiosk" style="position: absolute;">
+              <p class="pb-status">직원 A · 근무 중</p>
+              <button type="button" class="pb-btn pb-kiosk__action">퇴근</button>
+              <p>탭 후 3초 내 자동 잠금</p>
+            </div>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="pb-section" aria-labelledby="concepts-h">
+      <h2 id="concepts-h">컨셉 목업 (SVG)</h2>
+      <div class="pb-concepts">
+        <figure>
+          <figcaption>A. 분할 카드 (배제)</figcaption>
+          <svg viewBox="0 0 200 120" role="img" aria-label="네 개의 동일한 카드로 나뉜 키오스크 컨셉">
+            <rect x="8" y="8" width="86" height="46" fill="#c6c6c6" />
+            <rect x="106" y="8" width="86" height="46" fill="#c6c6c6" />
+            <rect x="8" y="66" width="86" height="46" fill="#c6c6c6" />
+            <rect x="106" y="66" width="86" height="46" fill="#c6c6c6" />
+          </svg>
+        </figure>
+        <figure>
+          <figcaption>B. 단일 액션 커버 (채택)</figcaption>
+          <svg viewBox="0 0 200 120" role="img" aria-label="하나의 큰 액션 버튼을 가진 키오스크 컨셉">
+            <rect x="8" y="10" width="184" height="16" fill="#e8e8e8" />
+            <rect x="24" y="44" width="152" height="44" rx="4" fill="#0f62fe" />
+            <rect x="8" y="100" width="120" height="10" fill="#e8e8e8" />
+          </svg>
+        </figure>
+        <figure>
+          <figcaption>C. 대시보드 우선 (보류)</figcaption>
+          <svg viewBox="0 0 200 120" role="img" aria-label="상단 KPI 타일이 있는 매니저 홈 컨셉">
+            <rect x="8" y="8" width="56" height="30" fill="#c6c6c6" />
+            <rect x="72" y="8" width="56" height="30" fill="#c6c6c6" />
+            <rect x="136" y="8" width="56" height="30" fill="#c6c6c6" />
+            <rect x="8" y="48" width="184" height="64" fill="#e8e8e8" />
+          </svg>
+        </figure>
+      </div>
+    </section>
+
+    <section class="pb-section" aria-labelledby="shell-h">
+      <h2 id="shell-h">매니저 셸 (고정 사이드내비 + 스크롤 본문)</h2>
+      <div style="border: 1px solid var(--pb-border); border-radius: var(--pb-radius); overflow: hidden;">
+        <div class="pb-shell" style="min-height: 12rem;">
+          <nav class="pb-shell__nav" aria-label="매니저 내비게이션">
+            <a href="#" aria-current="page">오늘 현황</a>
+            <a href="#">예외 큐</a>
+            <a href="#">급여 미리보기</a>
+            <a href="#">감사 기록</a>
+          </nav>
+          <div class="pb-shell__body">
+            <h3>오늘 현황</h3>
+            <p>고정 사이드내비, 본문만 독립 스크롤. 이중 스크롤 없음.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="pb-toast" role="status">✔ 퇴근이 기록되었습니다</div>
+
+  <script type="module" src="/assets/vendor/app.js"></script>
+</body>
+</html>
