@@ -53,7 +53,9 @@ def main() -> None:
     sid = transaction.savepoint()
     try:
         Store.get()
-        manager = User.objects.create_user("smoke-mgr", password="pw-123456-strong", is_staff=True)
+        manager = User.objects.create_user(
+            "smoke-mgr", password="pw-123456-strong", is_staff=True  # noqa: S106 - synthetic
+        )
         emp = Employee.objects.create(
             employee_code="EMP-SMOKE1", display_name="합성직원",
             hire_date=dt.date(2026, 1, 1), compensation_profile=CompensationProfile.GENERAL,
