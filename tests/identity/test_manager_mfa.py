@@ -60,3 +60,25 @@ def test_recovery_codes_hashed_not_plaintext() -> None:
     hashes = list(RecoveryCode.objects.filter(user=user).values_list("code_hash", flat=True))
     for code in codes:
         assert code not in hashes
+
+
+def test_mfa_throttle_locks_after_max_attempts() -> None:
+    user = _user()
+    assert services.mfa_is_locked(user) is False
+    locked = False
+    for _ in range(services.MFA_MAX_ATTEMPTS):
+        locked = services.mfa_record_failure(user)
+    assert locked is True
+    assert services.mfa_is_locked(user) is True
+
+
+def test_mfa_success_clears_throttle() -> None:
+    user = _user()
+    services.mfa_record_failure(user)
+    services.mfa_record_failure(user)
+    services.mfa_record_success(user)
+    from apps.identity.auth.models import ManagerMfaThrottle
+
+    throttle = ManagerMfaThrottle.objects.get(user=user)
+    assert throttle.failed_attempts == 0
+    assert throttle.locked_until is None

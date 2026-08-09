@@ -19,12 +19,11 @@ the eventual multi-agent review (`/code-review ultra`) and operators start infor
 
 ## Known limitations / hardening opportunities
 
-- **Manager MFA has no attempt throttling.** Employee PINs lock out after 10
-  failures, but TOTP verification at the MFA step is unlimited. With the password
-  already known, TOTP is brute-forceable over time (valid_window=1 → ~3 valid codes
-  per 30 s). *Recommended:* per-user attempt limiting via a shared cache (Redis in
-  production; `LocMemCache` is per-process and unsuitable), plus a short backoff.
-  Left out because it needs a shared cache backend not yet provisioned.
+- **Manager MFA attempt throttling — FIXED.** The TOTP step now locks out after
+  `MFA_MAX_ATTEMPTS` (5) failures for `MFA_LOCKOUT` (15 min), via a database-backed
+  `ManagerMfaThrottle` (shared across app instances — correct behind multiple
+  Fargate tasks, unlike a per-process cache). The MFA view returns `429` while
+  locked and clears the throttle on success. Mirrors the employee-PIN lockout.
 - **Weekly-allowance month attribution is not auto-computed.** The engine computes
   the amount from confirmed facts, but "the allowance belongs to the month
   containing the paid weekly rest day" and "an incomplete month-boundary week blocks

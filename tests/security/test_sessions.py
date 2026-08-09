@@ -62,6 +62,18 @@ def test_wrong_totp_is_rejected() -> None:
     assert "_auth_user_id" not in client.session
 
 
+def test_mfa_locks_out_after_repeated_failures() -> None:
+    _user, secret = _manager()
+    client = Client()
+    client.post(reverse("auth:login"), {"username": "mgr", "password": PASSWORD})
+    for _ in range(services.MFA_MAX_ATTEMPTS):
+        assert client.post(reverse("auth:mfa"), {"token": "000000"}).status_code == 401
+    # Now locked: even the correct code is refused with 429 until the window passes.
+    resp = client.post(reverse("auth:mfa"), {"token": pyotp.TOTP(secret).now()})
+    assert resp.status_code == 429
+    assert "_auth_user_id" not in client.session
+
+
 def test_csrf_required_on_login_post() -> None:
     _manager()
     csrf_client = Client(enforce_csrf_checks=True)

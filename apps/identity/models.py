@@ -92,6 +92,7 @@ class Employee(TimeStampedModel):
 # Imported here (after Employee) so Django discovers them and there is no cycle.
 from apps.identity.auth.models import (  # noqa: E402,F401
     EmployeePin,
+    ManagerMfaThrottle,
     ManagerTOTP,
     RecoveryCode,
 )

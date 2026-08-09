@@ -60,14 +60,21 @@ def manager_mfa(request: HttpRequest) -> HttpResponse:
     if request.method == "GET":
         return render(request, "auth/mfa.html")
 
+    # Throttle the TOTP step so a known password can't be paired with a brute-forced
+    # code. Lockout is stored in the DB (shared across app instances).
+    if services.mfa_is_locked(user):
+        return render(request, "auth/mfa.html", {"error": GENERIC_ERROR}, status=429)
+
     token = request.POST.get("token", "")
     recovery = request.POST.get("recovery_code", "")
     ok = services.verify_totp(user, token) if token else services.verify_recovery_code(
         user, recovery
     )
     if not ok:
+        services.mfa_record_failure(user)
         return render(request, "auth/mfa.html", {"error": GENERIC_ERROR}, status=401)
 
+    services.mfa_record_success(user)
     request.session.pop(PENDING_MFA_KEY, None)
     login(request, user)  # rotates the session key
     stamp_login(request.session)

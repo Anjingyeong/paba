@@ -78,3 +78,24 @@ class EmployeePin(models.Model):
 
     def __str__(self) -> str:
         return f"EmployeePin#{self.pk}"
+
+
+class ManagerMfaThrottle(models.Model):
+    """Per-manager throttle for the TOTP step, mirroring the employee-PIN lockout.
+
+    Stored in the database (shared across all app tasks), so throttling is correct
+    even behind multiple Fargate instances — unlike a per-process in-memory cache.
+    """
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="mfa_throttle"
+    )
+    failed_attempts = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        app_label = "identity"
+
+    def __str__(self) -> str:
+        return f"ManagerMfaThrottle#{self.pk}"

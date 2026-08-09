@@ -23,12 +23,14 @@ from django.utils import timezone
 from apps.core.crypto import decrypt, encrypt
 from apps.identity.models import Employee
 
-from .models import EmployeePin, ManagerTOTP, RecoveryCode
+from .models import EmployeePin, ManagerMfaThrottle, ManagerTOTP, RecoveryCode
 
 PIN_LENGTH = 6
 PIN_MAX_ATTEMPTS = 10
 PIN_LOCKOUT = timedelta(minutes=15)
 RECOVERY_CODE_COUNT = 10
+MFA_MAX_ATTEMPTS = 5
+MFA_LOCKOUT = timedelta(minutes=15)
 
 # A throwaway Argon2 hash used to spend comparable work when an employee/PIN does
 # not exist, so timing and behaviour do not leak existence.
@@ -142,6 +144,34 @@ def verify_totp(user: User, token: str) -> bool:
 def has_confirmed_totp(user: User) -> bool:
     totp = ManagerTOTP.objects.filter(user=user).first()
     return bool(totp and totp.is_confirmed)
+
+
+# --- Manager MFA throttling -------------------------------------------------
+def mfa_is_locked(user: User) -> bool:
+    """Whether the TOTP step is currently locked out for this manager."""
+    throttle = ManagerMfaThrottle.objects.filter(user=user).first()
+    return bool(
+        throttle
+        and throttle.locked_until is not None
+        and throttle.locked_until > timezone.now()
+    )
+
+
+def mfa_record_failure(user: User) -> bool:
+    """Record a failed MFA attempt; returns True once the account locks."""
+    throttle, _ = ManagerMfaThrottle.objects.get_or_create(user=user)
+    throttle.failed_attempts += 1
+    locked = throttle.failed_attempts >= MFA_MAX_ATTEMPTS
+    if locked:
+        throttle.locked_until = timezone.now() + MFA_LOCKOUT
+        throttle.failed_attempts = 0
+    throttle.save(update_fields=["failed_attempts", "locked_until", "updated_at"])
+    return locked
+
+
+def mfa_record_success(user: User) -> None:
+    """Clear any throttle state after a successful MFA."""
+    ManagerMfaThrottle.objects.filter(user=user).update(failed_attempts=0, locked_until=None)
 
 
 # --- Recovery codes ---------------------------------------------------------
