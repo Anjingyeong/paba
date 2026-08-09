@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "apps.devices",
     "apps.auditlog",
     "apps.attendance",
+    "apps.exports",
 ]
 
 MIDDLEWARE = [
