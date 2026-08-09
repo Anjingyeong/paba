@@ -86,3 +86,12 @@ class Employee(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.display_name} ({self.employee_code})"
+
+
+# Authentication-secret models live in the auth submodule but belong to this app.
+# Imported here (after Employee) so Django discovers them and there is no cycle.
+from apps.identity.auth.models import (  # noqa: E402,F401
+    EmployeePin,
+    ManagerTOTP,
+    RecoveryCode,
+)

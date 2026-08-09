@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="ko">
+<head><meta charset="utf-8"><title>기기 페어링</title></head>
+<body>
+  <main>
+    <h1>매장 태블릿 페어링</h1>
+    {% if code %}
+      <p>아래 일회용 코드를 태블릿에 입력하세요 (10분 이내):</p>
+      <p><strong>{{ code }}</strong></p>
+    {% else %}
+      <form method="post" action="{% url 'devices:pair' %}">
+        {% csrf_token %}
+        <button type="submit">페어링 코드 발급</button>
+      </form>
+    {% endif %}
+  </main>
+</body>
+</html>

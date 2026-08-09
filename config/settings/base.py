@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "apps.core",
     "apps.identity",
     "apps.payroll",
+    "apps.devices",
 ]
 
 MIDDLEWARE = [
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "apps.identity.auth.middleware.SessionTimeoutMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -129,6 +131,17 @@ CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_USE_SESSIONS = True
+
+# Manager session lifetime bounds enforced by SessionTimeoutMiddleware.
+from datetime import timedelta  # noqa: E402
+
+SESSION_IDLE_TIMEOUT = timedelta(minutes=15)
+SESSION_ABSOLUTE_TIMEOUT = timedelta(hours=8)
+
+# Paired-kiosk device cookie: host-only, Secure, HttpOnly, SameSite=Strict.
+KIOSK_COOKIE_NAME = "__Host-kiosk"
+KIOSK_COOKIE_SECURE = True
+KIOSK_COOKIE_SAMESITE = "Strict"
 
 # --- Localization -----------------------------------------------------------
 LANGUAGE_CODE = "ko-kr"

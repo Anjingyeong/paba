@@ -19,3 +19,7 @@ CSRF_COOKIE_SECURE = False
 MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]  # noqa: F405
 STORAGES = {**STORAGES, "staticfiles": {  # noqa: F405
     "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}
+
+# __Host- and Secure require HTTPS; drop them for plain-HTTP local dev.
+KIOSK_COOKIE_NAME = "kiosk"
+KIOSK_COOKIE_SECURE = False

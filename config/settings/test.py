@@ -23,6 +23,11 @@ MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]  # noqa: F
 STORAGES = {**STORAGES, "staticfiles": {  # noqa: F405
     "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}
 
+# Default to plain cookie names in tests; cookie-hardening tests opt into the
+# secure __Host- variants via @override_settings.
+KIOSK_COOKIE_NAME = "kiosk"
+KIOSK_COOKIE_SECURE = False
+
 # Faster password hashing in tests without losing Argon2 coverage where needed.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
