@@ -68,3 +68,21 @@ def test_concurrent_distinct_clock_outs_close_once() -> None:
     # Exactly one succeeded; the rest saw no open shift.
     assert len(results) == 1
     assert all(isinstance(e, InvalidPunch) for e in errors)
+
+
+def test_concurrent_identical_clock_outs_are_idempotent() -> None:
+    emp = _emp("EMP-CC2")
+    record_punch(employee=emp, kind=PunchKind.CLOCK_IN, idempotency_key="in2")
+
+    # Same idempotency key on every concurrent CLOCK_OUT == one double-tapped action.
+    results, errors = _run(
+        lambda: record_punch(
+            employee=emp, kind=PunchKind.CLOCK_OUT, idempotency_key="out-same"
+        ),
+        10,
+    )
+    assert errors == []
+    assert PunchEvent.objects.filter(kind=PunchKind.CLOCK_OUT).count() == 1
+    assert Shift.objects.filter(employee=emp, closed_at__isnull=True).count() == 0
+    # Every caller observed the one canonical event.
+    assert len({r.pk for r in results}) == 1

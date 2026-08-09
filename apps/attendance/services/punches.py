@@ -77,21 +77,38 @@ def record_punch(
             .filter(employee=employee, closed_at__isnull=True)
             .first()
         )
+        # Re-check the key once the shift row is locked: a concurrent duplicate with
+        # the same key may have committed (and possibly closed the shift) while we
+        # waited on the lock. If so, this *is* that action — return it idempotently
+        # instead of erroring.
         if open_shift is None:
-            raise InvalidPunch("NO_OPEN_SHIFT")
+            return _existing_or(idempotency_key, InvalidPunch("NO_OPEN_SHIFT"))
 
         state = _state_of_open_shift(open_shift)
         if kind not in _ALLOWED_NEXT[state]:
-            raise InvalidPunch(f"ILLEGAL_TRANSITION_{state}_{kind}")
+            return _existing_or(
+                idempotency_key, InvalidPunch(f"ILLEGAL_TRANSITION_{state}_{kind}")
+            )
 
-        event = PunchEvent.objects.create(
-            shift=open_shift, kind=kind, occurred_at=now,
-            device=device, idempotency_key=idempotency_key,
-        )
+        try:
+            event = PunchEvent.objects.create(
+                shift=open_shift, kind=kind, occurred_at=now,
+                device=device, idempotency_key=idempotency_key,
+            )
+        except IntegrityError:
+            return _existing_or(idempotency_key, InvalidPunch("DUPLICATE"))
         if kind == PunchKind.CLOCK_OUT:
             open_shift.closed_at = now
             open_shift.save(update_fields=["closed_at"])
         return event
+
+
+def _existing_or(key: str, error: InvalidPunch) -> PunchEvent:
+    """Return the event already recorded under ``key`` (idempotent), else raise."""
+    existing = PunchEvent.objects.filter(idempotency_key=key).first()
+    if existing is not None:
+        return existing
+    raise error
 
 
 def _clock_in(employee: Employee, key: str, device: KioskDevice | None, now) -> PunchEvent:
