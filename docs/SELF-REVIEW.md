@@ -41,11 +41,15 @@ the eventual multi-agent review (`/code-review ultra`) and operators start infor
   `PENDING_OFFICIAL_VERIFICATION`: every figure needs primary-source human sign-off,
   and the manager's RECONCILED step is authoritative regardless. See
   `docs/runbooks/insurance-rate-update.md`.
-- **Manager/kiosk pages are validated as static-served templates.** `templates/
-  kiosk/states.html` and `templates/manager/console.html` are exercised by
-  Playwright over a static server (mirroring the design-system showcase). Wiring
-  server-rendered Django routes that inject live state via `{% static %}` is a
-  follow-up; the dynamic backend flows are covered by the Django integration tests.
+- **Manager/kiosk Django routes — WIRED.** `/kiosk/` and `/manager/console/`
+  (login-required) now render `templates/kiosk/states.html` and
+  `templates/manager/console.html` as real Django routes. Setting
+  `STATIC_URL="/assets/"` lets the templates' single literal `/assets/…` paths
+  resolve both through Django's static machinery (dev + prod) and when the same
+  files are served to the Playwright e2e — no template duplication, and the 35 e2e
+  tests still pass. Remaining follow-up: inject *live* per-request state into these
+  shells (they currently render the static state set the e2e exercises; the dynamic
+  backend flows are covered by the Django integration tests).
 
 ## Verified only in CI (tools unavailable / killed locally in this environment)
 

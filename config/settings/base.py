@@ -154,9 +154,15 @@ USE_I18N = True
 USE_TZ = True
 
 # --- Static -----------------------------------------------------------------
-STATIC_URL = "/static/"
+# Served at /assets/ so the server-rendered kiosk/manager templates can reference
+# their bundled CSS/JS with a single literal path that also works when the same
+# files are served statically to the Playwright e2e suite.
+STATIC_URL = "/assets/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "assets"]
+
+# Where @login_required redirects unauthenticated managers.
+LOGIN_URL = "/manager/login/"
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
