@@ -11,10 +11,10 @@ resource "aws_acm_certificate" "main" {
 }
 
 resource "aws_lb" "main" {
-  name               = "${var.project}-alb"
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = aws_subnet.public[*].id
+  name                       = "${var.project}-alb"
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = aws_subnet.public[*].id
   drop_invalid_header_fields = true
 }
 

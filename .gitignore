@@ -31,3 +31,8 @@ Thumbs.db
 
 # External codegraph symlink
 .codegraph/
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+infra/terraform/tf.plan

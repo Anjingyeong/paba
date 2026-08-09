@@ -44,9 +44,9 @@ resource "aws_db_instance" "main" {
   copy_tags_to_snapshot     = true
   final_snapshot_identifier = "${var.project}-db-final"
 
-  performance_insights_enabled          = true
-  performance_insights_kms_key_id       = aws_kms_key.data.arn
-  enabled_cloudwatch_logs_exports       = ["postgresql"]
-  auto_minor_version_upgrade            = true
-  iam_database_authentication_enabled   = true
+  performance_insights_enabled        = true
+  performance_insights_kms_key_id     = aws_kms_key.data.arn
+  enabled_cloudwatch_logs_exports     = ["postgresql"]
+  auto_minor_version_upgrade          = true
+  iam_database_authentication_enabled = true
 }

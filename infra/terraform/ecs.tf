@@ -1,7 +1,7 @@
 # Fargate service running the app in private subnets behind the ALB.
 
 resource "aws_ecs_cluster" "main" {
-  name = "${var.project}"
+  name = var.project
   setting {
     name  = "containerInsights"
     value = "enabled"
@@ -15,7 +15,7 @@ resource "aws_cloudwatch_log_group" "app" {
 }
 
 resource "aws_ecs_task_definition" "app" {
-  family                   = "${var.project}"
+  family                   = var.project
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   cpu                      = "512"
@@ -25,9 +25,9 @@ resource "aws_ecs_task_definition" "app" {
 
   container_definitions = jsonencode([
     {
-      name      = "app"
-      image     = var.container_image
-      essential = true
+      name         = "app"
+      image        = var.container_image
+      essential    = true
       portMappings = [{ containerPort = 8000, protocol = "tcp" }]
       environment = [
         { name = "DJANGO_SETTINGS_MODULE", value = "config.settings.production" },
@@ -54,7 +54,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 resource "aws_ecs_service" "app" {
-  name            = "${var.project}"
+  name            = var.project
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
   desired_count   = 2
