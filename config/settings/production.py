@@ -26,3 +26,8 @@ X_FRAME_OPTIONS = "DENY"
 CSRF_TRUSTED_ORIGINS = [
     f"https://{host}" for host in ALLOWED_HOSTS if host not in {"localhost", "127.0.0.1"}
 ]
+
+# Encrypt data in transit to the database. Backup/at-rest encryption is enforced
+# by the managed infrastructure (KMS/RDS) declared in Todo 16.
+DATABASES["default"].setdefault("OPTIONS", {})  # noqa: F405
+DATABASES["default"]["OPTIONS"]["sslmode"] = env("POSTGRES_SSLMODE", "require")  # noqa: F405

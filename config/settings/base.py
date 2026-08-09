@@ -54,10 +54,12 @@ INSTALLED_APPS = [
     "apps.identity",
     "apps.payroll",
     "apps.devices",
+    "apps.auditlog",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "apps.auditlog.middleware.RequestIdMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -165,7 +167,18 @@ KRW_ROUNDING = "ROUND_CEILING"
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        # Structurally redacts PIN/TOTP/token/session values and KRW amounts from
+        # every log line as defence in depth.
+        "redact": {"()": "apps.auditlog.redaction.SensitiveDataFilter"},
+    },
     "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
-    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "plain",
+            "filters": ["redact"],
+        }
+    },
     "root": {"handlers": ["console"], "level": env("DJANGO_LOG_LEVEL", "INFO")},
 }
