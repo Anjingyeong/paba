@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "bun build ./assets/ts/main.ts ./assets/ts/app.ts ./assets/ts/kiosk.ts --outdir ./assets/vendor --target browser --minify",
+    "build": "bun build ./assets/ts/main.ts ./assets/ts/app.ts ./assets/ts/kiosk.ts ./assets/ts/manager.ts --outdir ./assets/vendor --target browser --minify",
     "typecheck": "tsc --noEmit",
     "biome": "biome check assets tests/e2e",
     "test:e2e": "playwright test"

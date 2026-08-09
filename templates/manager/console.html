@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>점장 콘솔</title>
+  <link rel="stylesheet" href="/assets/styles/tokens.css" />
+  <link rel="stylesheet" href="/assets/styles/app.css" />
+</head>
+<body>
+  <div class="pb-shell">
+    <nav class="pb-shell__nav" aria-label="점장 내비게이션">
+      <a href="#today" aria-current="page">오늘 현황</a>
+      <a href="#exceptions">예외 큐</a>
+      <a href="#preview">급여 미리보기</a>
+      <a href="#insurance">보험 대사</a>
+      <a href="#close">마감/재오픈</a>
+      <a href="#exports">내보내기</a>
+      <a href="#audit">감사 기록</a>
+    </nav>
+
+    <main class="pb-shell__body">
+      <section id="today" class="pb-section" aria-labelledby="today-h">
+        <h1 id="today-h">오늘 현황</h1>
+        <p class="pb-status pb-status--success"><span class="pb-status__dot"></span>✔ 근무 중 3명</p>
+        <p class="pb-status pb-status--warning"><span class="pb-status__dot"></span>⚠ 예외 2건</p>
+      </section>
+
+      <section id="exceptions" class="pb-section" aria-labelledby="exc-h">
+        <h2 id="exc-h">예외 큐 (대량)</h2>
+        <div class="pb-table-wrap">
+          <table class="pb-table">
+            <thead>
+              <tr><th scope="col">직원</th><th scope="col">지급시간</th><th scope="col">상태</th></tr>
+            </thead>
+            <tbody data-bulk-rows></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="preview" class="pb-section" aria-labelledby="prev-h">
+        <h2 id="prev-h">급여 미리보기</h2>
+        <p>마감 차단 항목:</p>
+        <ul>
+          <li class="pb-status pb-status--error"><span class="pb-status__dot"></span>미승인 정정 1건</li>
+          <li class="pb-status pb-status--warning"><span class="pb-status__dot"></span>주휴 결정 필요</li>
+        </ul>
+      </section>
+
+      <section id="insurance" class="pb-section" aria-labelledby="ins-h">
+        <h2 id="ins-h">보험 대사</h2>
+        <form onsubmit="return false">
+          <label class="pb-field">
+            <span>건강보험 기관 고지액</span>
+            <input class="pb-input" name="health_final" inputmode="numeric" />
+          </label>
+          <label class="pb-field">
+            <span>사유</span>
+            <input class="pb-input" name="reason" />
+          </label>
+          <button type="button" class="pb-btn">대사 완료</button>
+        </form>
+      </section>
+
+      <section id="close" class="pb-section" aria-labelledby="close-h">
+        <h2 id="close-h">월마감 / 재오픈</h2>
+        <button type="button" class="pb-btn" data-confirm="reopen-dialog">재오픈</button>
+        <dialog id="reopen-dialog" aria-label="재오픈 확인">
+          <form method="dialog" class="pb-field">
+            <p>재오픈하려면 사유를 입력하세요.</p>
+            <label>
+              <span>사유</span>
+              <input class="pb-input" data-reason name="reason" />
+            </label>
+            <button type="button" class="pb-btn" data-submit disabled>확인</button>
+            <button type="button" class="pb-btn pb-btn--secondary" data-cancel>취소</button>
+          </form>
+        </dialog>
+      </section>
+
+      <section id="exports" class="pb-section" aria-labelledby="exp-h">
+        <h2 id="exp-h">내보내기</h2>
+        <p>최근 내보내기 없음 (빈 상태)</p>
+      </section>
+
+      <section id="audit" class="pb-section" aria-labelledby="audit-h">
+        <h2 id="audit-h">감사 기록</h2>
+        <p aria-busy="true">불러오는 중…</p>
+        <p class="pb-status pb-status--error"><span class="pb-status__dot"></span>✕ 권한 없음: 접근이 거부되었습니다</p>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="/assets/vendor/manager.js"></script>
+</body>
+</html>
