@@ -18,16 +18,18 @@ BASE = 3_000_000
 
 
 def test_national_pension_estimate() -> None:
-    assert estimate_premium(InsuranceKind.NATIONAL_PENSION, BASE, VERSION) == 135_000
+    # 2026: 9.5% total → 4.75% employee. 3,000,000 × 0.0475 = 142,500.
+    assert estimate_premium(InsuranceKind.NATIONAL_PENSION, BASE, VERSION) == 142_500
 
 
 def test_health_estimate() -> None:
-    assert estimate_premium(InsuranceKind.HEALTH, BASE, VERSION) == 106_350
+    # 2026: 7.19% total → 3.595% employee. 3,000,000 × 0.03595 = 107,850.
+    assert estimate_premium(InsuranceKind.HEALTH, BASE, VERSION) == 107_850
 
 
 def test_long_term_care_is_percent_of_health() -> None:
-    # health premium 106,350 × 0.1295 = 13,772.325 -> floor 13,772
-    assert estimate_premium(InsuranceKind.LONG_TERM_CARE, BASE, VERSION) == 13_772
+    # health premium 107,850 × 0.1295 = 13,966.575 -> floor 13,966
+    assert estimate_premium(InsuranceKind.LONG_TERM_CARE, BASE, VERSION) == 13_966
 
 
 def test_employment_estimate() -> None:
@@ -35,8 +37,8 @@ def test_employment_estimate() -> None:
 
 
 def test_round_down_floors_fractions() -> None:
-    # 1,234,567 × 0.045 = 55,555.515 -> 55,555
-    assert estimate_premium(InsuranceKind.NATIONAL_PENSION, 1_234_567, VERSION) == 55_555
+    # 1,234,567 × 0.0475 = 58,641.9325 -> 58,641
+    assert estimate_premium(InsuranceKind.NATIONAL_PENSION, 1_234_567, VERSION) == 58_641
 
 
 def test_industrial_accident_is_not_an_employee_insurance() -> None:

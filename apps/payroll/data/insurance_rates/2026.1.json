@@ -2,27 +2,30 @@
   "version": "2026.1",
   "effective_from": "2026-01-01",
   "verification_status": "PENDING_OFFICIAL_VERIFICATION",
-  "note": "Employee-side rates. Values must be verified against the official sources below before production use; the manager's institution reconciliation (RECONCILED) is the authoritative figure regardless.",
+  "note": "Employee-side rates for 2026. Pension (9.5% total → 4.75% employee) and Health (7.19% total → 3.595% employee) are confirmed for 2026 per the sources below; Long-term care and Employment rates were still pre-notice (잠정) at time of writing and are carried at their 2025 values. Every figure must still be verified against the official primary source before production use, and the manager's institution reconciliation (RECONCILED) is the authoritative amount regardless.",
   "insurances": {
     "NATIONAL_PENSION": {
       "basis": "monthly_standard_remuneration",
-      "employee_rate": "0.045",
+      "employee_rate": "0.0475",
+      "confirmed_2026": true,
       "rounding": "ROUND_DOWN",
       "source_url": "https://www.nps.or.kr/pnsinfo/ntpsklg/getOHAF0104M0.do",
-      "published_on": "2026-01-01",
+      "published_on": "2025-12-01",
       "effective_from": "2026-01-01"
     },
     "HEALTH": {
       "basis": "monthly_remuneration",
-      "employee_rate": "0.03545",
+      "employee_rate": "0.03595",
+      "confirmed_2026": true,
       "rounding": "ROUND_DOWN",
-      "source_url": "https://edi.nhis.or.kr/portal/images/popup/20251204_pop01longdesc.html",
-      "published_on": "2025-12-04",
+      "source_url": "https://www.mohw.go.kr/board.es?act=view&bid=0027&list_no=1487279&mid=a10503000000",
+      "published_on": "2025-08-27",
       "effective_from": "2026-01-01"
     },
     "LONG_TERM_CARE": {
       "basis": "health_premium",
       "rate_of_health_premium": "0.1295",
+      "confirmed_2026": false,
       "rounding": "ROUND_DOWN",
       "source_url": "https://edi.nhis.or.kr/portal/images/popup/20251204_pop01longdesc.html",
       "published_on": "2025-12-04",
@@ -31,6 +34,7 @@
     "EMPLOYMENT": {
       "basis": "monthly_remuneration",
       "employee_rate": "0.009",
+      "confirmed_2026": false,
       "rounding": "ROUND_DOWN",
       "source_url": "https://www.moel.go.kr/",
       "published_on": "2026-01-01",

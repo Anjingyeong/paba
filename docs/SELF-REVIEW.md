@@ -32,10 +32,15 @@ the eventual multi-agent review (`/code-review ultra`) and operators start infor
   to the explicit flag). This affects only *whether* a close is allowed, never a pay
   amount. Remaining follow-up: have the close *preview* populate `weekly_rest_weekday`
   per employee from `EmploymentTerms` (today the caller supplies it).
-- **Insurance rates are unverified.** `apps/payroll/data/insurance_rates/2026.1.json`
-  carries `verification_status: PENDING_OFFICIAL_VERIFICATION`. The figures must be
-  checked against the official sources before production; the manager's RECONCILED
-  step is authoritative regardless. See `docs/runbooks/insurance-rate-update.md`.
+- **Insurance rates — updated to 2026, still pending primary-source sign-off.**
+  `apps/payroll/data/insurance_rates/2026.1.json` now carries the *confirmed* 2026
+  figures for **National Pension** (9.5% total → 4.75% employee) and **Health**
+  (7.19% total → 3.595% employee), sourced from the 2025 announcements (`confirmed_2026:
+  true`). **Long-term care** and **Employment** were still pre-notice (잠정) and are
+  carried at 2025 values with `confirmed_2026: false`. `verification_status` stays
+  `PENDING_OFFICIAL_VERIFICATION`: every figure needs primary-source human sign-off,
+  and the manager's RECONCILED step is authoritative regardless. See
+  `docs/runbooks/insurance-rate-update.md`.
 - **Manager/kiosk pages are validated as static-served templates.** `templates/
   kiosk/states.html` and `templates/manager/console.html` are exercised by
   Playwright over a static server (mirroring the design-system showcase). Wiring

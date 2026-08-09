@@ -40,8 +40,8 @@ def test_estimate_then_reconcile_records_variance() -> None:
         manager=mgr, reason="기관 고지액 반영",
     )
     assert obj.status == InsuranceStatus.RECONCILED
-    assert obj.estimated_amount == 106_350
-    assert obj.variance == 150
+    assert obj.estimated_amount == 107_850  # 2026 health rate 3.595%
+    assert obj.variance == -1_350
 
 
 def test_reconcile_requires_reason() -> None:
