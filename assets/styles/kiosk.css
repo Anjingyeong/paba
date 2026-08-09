@@ -1,0 +1,61 @@
+/*
+ * Kiosk-specific styles layered on the design tokens (tokens.css) and app.css.
+ * The kiosk is a full-screen cover with one large current action; every target
+ * is oversized for gloved, one-handed use.
+ */
+
+.pb-kiosk__title {
+  font-size: var(--pb-type-h1);
+  text-align: center;
+  margin: 0;
+}
+
+.pb-kiosk__name {
+  font-size: var(--pb-type-h2);
+  text-align: center;
+  color: var(--pb-text);
+}
+
+.pb-kiosk__pin {
+  display: flex;
+  flex-direction: column;
+  gap: var(--pb-space-4);
+  max-width: 24rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.pb-kiosk__pin input {
+  min-height: 64px;
+  font-size: var(--pb-type-h2);
+  text-align: center;
+  letter-spacing: 0.5em;
+  padding: var(--pb-space-4);
+  border: 2px solid var(--pb-border);
+  border-radius: var(--pb-radius);
+  background: var(--pb-field);
+  color: var(--pb-text);
+}
+
+.pb-kiosk__action {
+  min-height: 96px;
+  font-size: var(--pb-type-h2);
+}
+
+.pb-kiosk__result {
+  text-align: center;
+  font-size: var(--pb-type-h2);
+}
+
+/* Only one kiosk state is visible at a time. */
+.pb-kiosk__state[hidden] {
+  display: none !important;
+}
+
+.pb-kiosk__state {
+  display: grid;
+  gap: var(--pb-space-6);
+  align-content: center;
+  justify-items: center;
+  height: 100%;
+}

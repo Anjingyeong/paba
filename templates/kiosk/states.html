@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>출퇴근 키오스크</title>
+  <link rel="stylesheet" href="/assets/styles/tokens.css" />
+  <link rel="stylesheet" href="/assets/styles/app.css" />
+  <link rel="stylesheet" href="/assets/styles/kiosk.css" />
+</head>
+<body>
+  <div class="pb-kiosk" role="application" aria-label="출퇴근 키오스크">
+    <p class="pb-visually-hidden" data-live aria-live="polite" role="status"></p>
+
+    <!-- Locked -->
+    <section class="pb-kiosk__state" data-state="locked" data-announce="잠금 화면입니다" hidden>
+      <h1 class="pb-kiosk__title">파리바게트 출퇴근</h1>
+      <button type="button" class="pb-btn pb-kiosk__action" data-go="pin">시작하기</button>
+    </section>
+
+    <!-- Employee code + PIN -->
+    <section class="pb-kiosk__state" data-state="pin" data-announce="직원코드와 PIN을 입력하세요" hidden>
+      <h1 class="pb-kiosk__title">직원 확인</h1>
+      <form class="pb-kiosk__pin" onsubmit="return false">
+        <label>
+          <span>직원코드</span>
+          <input name="employee_code" autocomplete="off" inputmode="text" />
+        </label>
+        <label>
+          <span>PIN</span>
+          <input name="pin" data-pin type="password" inputmode="numeric" autocomplete="off"
+                 maxlength="6" />
+        </label>
+        <button type="button" class="pb-btn pb-kiosk__action" data-go="action">확인</button>
+        <button type="button" class="pb-btn pb-btn--secondary" data-go="locked">취소</button>
+      </form>
+    </section>
+
+    <!-- Single current action -->
+    <section class="pb-kiosk__state" data-state="action" data-announce="근무 중입니다" hidden>
+      <p class="pb-kiosk__name" data-employee-name>직원 A</p>
+      <button type="button" class="pb-btn pb-kiosk__action" data-go="break">휴게 시작</button>
+      <button type="button" class="pb-btn pb-kiosk__action" data-go="success">퇴근</button>
+      <button type="button" class="pb-btn pb-btn--secondary" data-go="correction">정정 요청</button>
+    </section>
+
+    <!-- On break -->
+    <section class="pb-kiosk__state" data-state="break" data-announce="휴게 중입니다" hidden>
+      <p class="pb-kiosk__name" data-employee-name>직원 A</p>
+      <button type="button" class="pb-btn pb-kiosk__action" data-go="success">휴게 종료</button>
+    </section>
+
+    <!-- Success (auto-locks in 3s) -->
+    <section class="pb-kiosk__state" data-state="success" data-announce="기록되었습니다" hidden>
+      <p class="pb-kiosk__result pb-status pb-status--success">
+        <span class="pb-status__dot"></span>✔ 기록되었습니다
+      </p>
+      <button type="button" class="pb-btn pb-btn--secondary" data-go="locked">확인</button>
+    </section>
+
+    <!-- Correction request -->
+    <section class="pb-kiosk__state" data-state="correction" data-announce="정정 요청" hidden>
+      <h1 class="pb-kiosk__title">정정 요청</h1>
+      <form class="pb-kiosk__pin" onsubmit="return false">
+        <label>
+          <span>사유</span>
+          <input name="reason" autocomplete="off" />
+        </label>
+        <button type="button" class="pb-btn pb-kiosk__action" data-go="success">제출</button>
+        <button type="button" class="pb-btn pb-btn--secondary" data-go="locked">취소</button>
+      </form>
+    </section>
+
+    <!-- Network error -->
+    <section class="pb-kiosk__state" data-state="network-error" data-announce="네트워크 오류" hidden>
+      <p class="pb-kiosk__result pb-status pb-status--error">
+        <span class="pb-status__dot"></span>✕ 네트워크 오류. 다시 시도하세요.
+      </p>
+      <button type="button" class="pb-btn pb-kiosk__action" data-go="pin">다시 시도</button>
+    </section>
+  </div>
+
+  <script type="module" src="/assets/vendor/kiosk.js"></script>
+</body>
+</html>
