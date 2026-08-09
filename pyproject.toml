@@ -46,6 +46,8 @@ ignore = ["S101"]  # allow assert in tests
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
 "config/settings/*" = ["F403", "F405"]
+# Django auto-generates migrations; their long descriptor lines are not ours to wrap.
+"**/migrations/*" = ["E501"]
 
 [tool.basedpyright]
 pythonVersion = "3.13"
@@ -53,3 +55,7 @@ typeCheckingMode = "standard"
 include = ["config", "apps", "tests"]
 exclude = ["**/migrations/**", "**/node_modules/**", ".venv", ".uvcache", "staticfiles", "assets/vendor"]
 reportMissingTypeStubs = false
+# django-stubs merges the inner Meta class via the mypy plugin, which pyright does
+# not run; every model's `class Meta` then reads as an incompatible override. This
+# is a framework-wide false positive, not a real type error.
+reportIncompatibleVariableOverride = false

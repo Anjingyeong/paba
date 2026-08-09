@@ -13,3 +13,9 @@ SESSION_COOKIE_NAME = "sessionid"
 SESSION_COOKIE_SECURE = False
 CSRF_COOKIE_NAME = "csrftoken"
 CSRF_COOKIE_SECURE = False
+
+# WhiteNoise is a production static-serving concern; in dev the staticfiles app
+# serves assets and WhiteNoise would only warn about a missing STATIC_ROOT.
+MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]  # noqa: F405
+STORAGES = {**STORAGES, "staticfiles": {  # noqa: F405
+    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}

@@ -47,8 +47,12 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "django.contrib.messages",
+    "django.contrib.postgres",
     # Local apps
     "apps.health",
+    "apps.core",
+    "apps.identity",
+    "apps.payroll",
 ]
 
 MIDDLEWARE = [

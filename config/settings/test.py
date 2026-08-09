@@ -18,6 +18,11 @@ CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_NAME = "sessionid"
 CSRF_COOKIE_NAME = "csrftoken"
 
+# No WhiteNoise in tests (production static concern); avoids STATIC_ROOT warnings.
+MIDDLEWARE = [m for m in MIDDLEWARE if "whitenoise" not in m.lower()]  # noqa: F405
+STORAGES = {**STORAGES, "staticfiles": {  # noqa: F405
+    "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"}}
+
 # Faster password hashing in tests without losing Argon2 coverage where needed.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",
