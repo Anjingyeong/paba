@@ -21,6 +21,7 @@ from apps.attendance.models import PunchEvent, Shift
 from apps.attendance.services.approvals import APPROVED, approval_status
 from apps.auditlog import services as audit
 from apps.payroll.models.close import PayrollPeriod, PayrollSnapshot, PeriodStatus
+from apps.payroll.services.earnings import is_month_boundary_week_complete
 
 
 class CloseBlocked(Exception):
@@ -95,7 +96,13 @@ def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
             blockers.add("INSURANCE_NOT_FINAL")
         if line.get("time_blockers"):
             blockers.add("TIME_BLOCKER")
-        if not line.get("month_boundary_week_complete", True):
+        # Month-boundary week completeness: computed from the employee's weekly rest
+        # day when provided, else an explicit caller flag.
+        rest_weekday = line.get("weekly_rest_weekday")
+        if rest_weekday is not None:
+            if not is_month_boundary_week_complete(month, rest_weekday, timezone.localdate()):
+                blockers.add("MONTH_BOUNDARY_WEEK_INCOMPLETE")
+        elif not line.get("month_boundary_week_complete", True):
             blockers.add("MONTH_BOUNDARY_WEEK_INCOMPLETE")
         if line.get("missing_contract_facts"):
             blockers.add("MISSING_CONTRACT_FACTS")

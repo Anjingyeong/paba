@@ -16,6 +16,7 @@ from .weekly_allowance import (
     WeeklyAllowanceDecision,
     WeeklyAllowanceFacts,
     is_candidate,
+    is_month_boundary_week_complete,
     weekly_allowance_amount,
     weekly_allowance_hours,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "WeeklyAllowanceFacts",
     "calculate_base_pay",
     "is_candidate",
+    "is_month_boundary_week_complete",
     "validate_manual_earning",
     "weekly_allowance_amount",
     "weekly_allowance_hours",

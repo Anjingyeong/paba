@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from decimal import Decimal
 from pathlib import Path
 
@@ -11,10 +12,17 @@ from apps.payroll.services.earnings import (
     WeeklyAllowanceDecision,
     WeeklyAllowanceFacts,
     is_candidate,
+    is_month_boundary_week_complete,
     weekly_allowance_amount,
     weekly_allowance_hours,
 )
 from apps.payroll.services.earnings.weekly_allowance import APPLICABLE, NOT_APPLICABLE
+
+# 2026-07-01 is a Wednesday; the last Wednesday (2026-07-29) belongs to a Mon-Sun
+# week ending 2026-08-02 — a month-boundary week for July.
+JULY = dt.date(2026, 7, 1)
+WEDNESDAY = 2
+SUNDAY = 6
 
 
 def _facts(**kw) -> WeeklyAllowanceFacts:
@@ -67,6 +75,22 @@ def test_amount_requires_applicable_decision() -> None:
 def test_decision_requires_reason() -> None:
     with pytest.raises(ValueError):
         weekly_allowance_amount(_facts(), WeeklyAllowanceDecision(APPLICABLE, "  "))
+
+
+def test_month_boundary_week_incomplete_before_it_elapses() -> None:
+    # Closing July on Aug 1: the boundary week (ends 2026-08-02) has not elapsed.
+    assert is_month_boundary_week_complete(JULY, WEDNESDAY, dt.date(2026, 8, 1)) is False
+
+
+def test_month_boundary_week_complete_once_elapsed() -> None:
+    assert is_month_boundary_week_complete(JULY, WEDNESDAY, dt.date(2026, 8, 2)) is True
+    assert is_month_boundary_week_complete(JULY, WEDNESDAY, dt.date(2026, 8, 10)) is True
+
+
+def test_sunday_rest_day_never_spills_over() -> None:
+    # With a Sunday rest day the week always ends within the month, so it is always
+    # complete regardless of the close date.
+    assert is_month_boundary_week_complete(JULY, SUNDAY, dt.date(2026, 7, 1)) is True
 
 
 def test_no_twenty_percent_shortcut_in_source() -> None:

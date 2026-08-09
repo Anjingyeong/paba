@@ -24,12 +24,14 @@ the eventual multi-agent review (`/code-review ultra`) and operators start infor
   `ManagerMfaThrottle` (shared across app instances — correct behind multiple
   Fargate tasks, unlike a per-process cache). The MFA view returns `429` while
   locked and clears the throttle on success. Mirrors the employee-PIN lockout.
-- **Weekly-allowance month attribution is not auto-computed.** The engine computes
-  the amount from confirmed facts, but "the allowance belongs to the month
-  containing the paid weekly rest day" and "an incomplete month-boundary week blocks
-  close" are represented as payload flags (`month_boundary_week_complete`) rather
-  than derived by a service. A future service should compute these from the
-  employee's terms + shifts feeding the close preview.
+- **Weekly-allowance month-boundary completeness — IMPLEMENTED.**
+  `is_month_boundary_week_complete(month, weekly_rest_weekday, as_of)` derives, from
+  the calendar alone, whether every labour week whose paid rest day falls in the
+  month has fully elapsed; an incomplete boundary week now blocks the close
+  (`collect_blockers` computes it from a line's `weekly_rest_weekday`, falling back
+  to the explicit flag). This affects only *whether* a close is allowed, never a pay
+  amount. Remaining follow-up: have the close *preview* populate `weekly_rest_weekday`
+  per employee from `EmploymentTerms` (today the caller supplies it).
 - **Insurance rates are unverified.** `apps/payroll/data/insurance_rates/2026.1.json`
   carries `verification_status: PENDING_OFFICIAL_VERIFICATION`. The figures must be
   checked against the official sources before production; the manager's RECONCILED

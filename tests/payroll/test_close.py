@@ -97,6 +97,34 @@ def test_unapproved_shift_in_month_blocks_close() -> None:
     assert "UNAPPROVED_CORRECTION" in exc.value.blockers
 
 
+def test_incomplete_month_boundary_week_blocks(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    # Freeze "today" to Aug 1 — before July's boundary week (rest day Wed) ends Aug 2.
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: dt.date(2026, 8, 1))
+    period = _period()
+    payload = {
+        "lines": [{"employee_id": "EMP-1", "net": 100, "insurance_final": True,
+                   "weekly_rest_weekday": 2}]
+    }
+    with pytest.raises(CloseBlocked) as exc:
+        close_period(period=period, payload=payload)
+    assert "MONTH_BOUNDARY_WEEK_INCOMPLETE" in exc.value.blockers
+
+
+def test_complete_month_boundary_week_does_not_block(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: dt.date(2026, 8, 2))
+    period = _period()
+    payload = {
+        "lines": [{"employee_id": "EMP-1", "net": 100, "insurance_final": True,
+                   "weekly_rest_weekday": 2}]
+    }
+    snap = close_period(period=period, payload=payload)
+    assert snap.version == 1
+
+
 def test_snapshot_is_immutable_at_model_and_db() -> None:
     period = _period()
     snap = close_period(period=period, payload=GOOD_PAYLOAD)

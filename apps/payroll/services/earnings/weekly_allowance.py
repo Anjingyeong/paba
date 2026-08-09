@@ -15,7 +15,9 @@ hourly wage, rounded up once. There is no ``base × 20%`` shortcut anywhere.
 
 from __future__ import annotations
 
+from calendar import monthrange
 from dataclasses import dataclass
+from datetime import date, timedelta
 from decimal import Decimal
 
 from apps.core.money import ceil_won
@@ -58,6 +60,33 @@ def weekly_allowance_hours(facts: WeeklyAllowanceFacts) -> Decimal:
             raise ValueError("ordinary_reference_days must be positive for short-time workers.")
         return facts.four_week_scheduled_hours / facts.ordinary_reference_days
     return facts.daily_scheduled_hours
+
+
+def is_month_boundary_week_complete(
+    month: date, weekly_rest_weekday: int, as_of: date
+) -> bool:
+    """Whether every labour week whose paid rest day falls in ``month`` has fully
+    elapsed as of ``as_of``.
+
+    Weekly allowance is attributed to the month containing the paid weekly rest day
+    (주휴일). A labour week runs Monday-Sunday. When a week's rest day is in ``month``
+    but the week extends into the next month, that week is a *month-boundary week*;
+    it is only complete once its Sunday has elapsed (``<= as_of``). An incomplete
+    boundary week must block the close because its allowance cannot yet be finalized.
+
+    Determined purely from the calendar — deterministic and independent of data
+    volume. Affects only *whether* a close is allowed, never any pay amount.
+    """
+    last_day = date(month.year, month.month, monthrange(month.year, month.month)[1])
+    day = month.replace(day=1)
+    while day <= last_day:
+        if day.weekday() == weekly_rest_weekday:
+            monday = day - timedelta(days=day.weekday())
+            sunday = monday + timedelta(days=6)
+            if sunday > last_day and sunday > as_of:
+                return False
+        day += timedelta(days=1)
+    return True
 
 
 def weekly_allowance_amount(
