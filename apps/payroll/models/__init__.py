@@ -6,6 +6,12 @@ calculation, close, and export models alongside these.
 
 from __future__ import annotations
 
+from .close import (
+    PayrollPeriod,
+    PayrollSnapshot,
+    PeriodStatus,
+    SnapshotImmutableError,
+)
 from .deductions import (
     InsuranceKindChoices,
     InsuranceReconciliation,
@@ -31,6 +37,10 @@ __all__ = [
     "InsuranceKindChoices",
     "InsuranceReconciliation",
     "InsuranceStatus",
+    "PayrollPeriod",
+    "PayrollSnapshot",
+    "PeriodStatus",
+    "SnapshotImmutableError",
     "StoreHeadcountBracket",
     "WeeklyAllowanceApplicability",
     "default_applicability_for",
