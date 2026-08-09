@@ -9,7 +9,6 @@ from django.db import InternalError, ProgrammingError, transaction
 from django.utils import timezone
 
 from apps.attendance.models import PunchEvent, PunchKind, Shift
-from apps.attendance.services.punches import record_punch
 from apps.identity.models import Employee
 from apps.payroll.models.close import PayrollSnapshot, PeriodStatus, SnapshotImmutableError
 from apps.payroll.services.close import (
@@ -42,15 +41,35 @@ def test_checksum_is_reproducible() -> None:
     assert checksum_of(GOOD_PAYLOAD) == checksum_of({"lines": [dict(GOOD_PAYLOAD["lines"][0])]})
 
 
-def test_open_shift_blocks_close() -> None:
-    period = _period()
+def _open_shift_with_event_at(emp: Employee, when: dt.datetime, key: str) -> Shift:
+    shift = Shift.objects.create(employee=emp)  # open (no closed_at)
+    PunchEvent.objects.create(
+        shift=shift, kind=PunchKind.CLOCK_IN,
+        occurred_at=timezone.make_aware(when), idempotency_key=key,
+    )
+    return shift
+
+
+def test_open_shift_in_month_blocks_close() -> None:
+    period = _period()  # July
     emp = Employee.objects.create(
         employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
     )
-    record_punch(employee=emp, kind=PunchKind.CLOCK_IN, idempotency_key="in")  # leaves shift open
+    _open_shift_with_event_at(emp, dt.datetime(2026, 7, 10, 9, 0), "jul-open")
     with pytest.raises(CloseBlocked) as exc:
         close_period(period=period, payload=GOOD_PAYLOAD)
     assert "OPEN_SHIFT" in exc.value.blockers
+
+
+def test_open_shift_in_later_month_does_not_block() -> None:
+    period = _period()  # July
+    emp = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    # Someone currently clocked in (August) must not block July's close.
+    _open_shift_with_event_at(emp, dt.datetime(2026, 8, 3, 9, 0), "aug-open")
+    snap = close_period(period=period, payload=GOOD_PAYLOAD)
+    assert snap.version == 1
 
 
 def test_negative_net_and_insurance_block_close() -> None:

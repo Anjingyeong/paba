@@ -63,8 +63,15 @@ def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
     month_start = timezone.make_aware(datetime.combine(month, time.min))
     month_end = timezone.make_aware(datetime.combine(_first_of_next_month(month), time.min))
 
-    # Attendance still open anywhere blocks the month.
-    if Shift.objects.filter(closed_at__isnull=True).exists():
+    # An attendance shift still open *within this month* blocks the close. A shift
+    # open in a later month (e.g. someone currently clocked in) is irrelevant to a
+    # prior month's close.
+    open_in_month = Shift.objects.filter(
+        closed_at__isnull=True,
+        events__occurred_at__gte=month_start,
+        events__occurred_at__lt=month_end,
+    ).exists()
+    if open_in_month:
         blockers.add("OPEN_SHIFT")
 
     # Every shift touching the month must be approved at its current state.
