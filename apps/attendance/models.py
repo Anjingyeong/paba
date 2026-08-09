@@ -14,6 +14,7 @@ Invariants enforced at the database level:
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.db import models
 
 from apps.devices.models import KioskDevice
@@ -65,3 +66,68 @@ class PunchEvent(models.Model):
 
     def __str__(self) -> str:
         return f"PunchEvent#{self.pk} {self.kind}"
+
+
+class CorrectionRequest(models.Model):
+    """An employee-raised request to correct their own shift. Read-only evidence;
+    it never mutates punches and carries no payroll data."""
+
+    shift = models.ForeignKey(Shift, on_delete=models.PROTECT, related_name="correction_requests")
+    requested_by = models.ForeignKey(
+        Employee, on_delete=models.PROTECT, related_name="correction_requests"
+    )
+    reason = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self) -> str:
+        return f"CorrectionRequest#{self.pk}"
+
+
+class ShiftCorrection(models.Model):
+    """A manager's superseding correction of a shift.
+
+    Raw :class:`PunchEvent` rows are never edited; instead a correction records the
+    authoritative corrected event sequence (``corrected_events``) together with the
+    actor, reason, evidence note and before/after digests. ``supersedes`` links to
+    the prior correction so the chain only ever grows.
+    """
+
+    shift = models.ForeignKey(Shift, on_delete=models.PROTECT, related_name="corrections")
+    supersedes = models.ForeignKey(
+        "self", on_delete=models.PROTECT, null=True, blank=True, related_name="superseded_by"
+    )
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+")
+    reason = models.CharField(max_length=500)
+    evidence_note = models.CharField(max_length=500, blank=True)
+    corrected_events = models.JSONField(default=list)
+    before_digest = models.CharField(max_length=64)
+    after_digest = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self) -> str:
+        return f"ShiftCorrection#{self.pk}"
+
+
+class ShiftApproval(models.Model):
+    """A manager's approval of a shift's current effective state.
+
+    The approval pins the specific correction it approved (``correction``; null =
+    raw punches). When a newer correction is added the approval no longer matches
+    the current state and is treated as stale until re-approved.
+    """
+
+    shift = models.OneToOneField(Shift, on_delete=models.PROTECT, related_name="approval")
+    approved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="+"
+    )
+    correction = models.ForeignKey(
+        ShiftCorrection, on_delete=models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    approved_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"ShiftApproval#{self.pk}"
