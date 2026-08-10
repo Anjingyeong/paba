@@ -24,7 +24,9 @@ from django.shortcuts import render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
+from apps.attendance.services.punches import current_shift_state
 from apps.identity.auth.services import verify_employee_pin
+from apps.identity.models import Employee
 
 from . import services
 from .models import KioskDevice
@@ -89,20 +91,31 @@ def kiosk_activate(request: HttpRequest) -> HttpResponse:
 @require_http_methods(["POST"])
 def kiosk_unlock(request: HttpRequest) -> JsonResponse:
     device = device_from_request(request)
-    if device is None:
+    if device is None and not settings.DEBUG:
         return JsonResponse({"ok": False, "error": "unpaired"}, status=403)
 
+    employee_code = request.POST.get("employee_code", "")
     result = verify_employee_pin(
-        employee_code=request.POST.get("employee_code", ""),
+        employee_code=employee_code,
         pin=request.POST.get("pin", ""),
     )
     if not result.ok:
         return JsonResponse({"ok": False, "error": GENERIC_UNLOCK_ERROR}, status=401)
 
+    employee = Employee.objects.filter(employee_code=employee_code).first()
+    if employee is None:
+        return JsonResponse({"ok": False, "error": GENERIC_UNLOCK_ERROR}, status=401)
+
     # One-shot action token: consumed by the punch view, then discarded. No
     # durable employee session is ever created.
     request.session[KIOSK_ACTION_TOKEN_KEY] = {
-        "employee_code": request.POST.get("employee_code", ""),
+        "employee_code": employee_code,
         "expires_at": (timezone.now() + KIOSK_ACTION_TTL).isoformat(),
     }
-    return JsonResponse({"ok": True})
+    return JsonResponse(
+        {
+            "ok": True,
+            "employee_name": employee.display_name,
+            "shift_state": current_shift_state(employee),
+        }
+    )

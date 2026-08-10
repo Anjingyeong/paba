@@ -23,3 +23,13 @@ STORAGES = {**STORAGES, "staticfiles": {  # noqa: F405
 # __Host- and Secure require HTTPS; drop them for plain-HTTP local dev.
 KIOSK_COOKIE_NAME = "kiosk"
 KIOSK_COOKIE_SECURE = False
+
+# DEV CONVENIENCE ONLY: skip the manager TOTP step so you can log in with just a
+# username + password during development. Defaults to OFF (no MFA) locally; set
+# MANAGER_MFA_REQUIRED=true in your env to exercise the real TOTP flow. Never set
+# in test/production — they inherit MANAGER_MFA_REQUIRED = True from base.
+MANAGER_MFA_REQUIRED = env_bool("MANAGER_MFA_REQUIRED", default=False)  # noqa: F405
+
+# DEV CONVENIENCE ONLY: common PIN for registered employees. The verification
+# service additionally requires DEBUG=True, even when this value is configured.
+EMPLOYEE_MASTER_PIN = env("EMPLOYEE_MASTER_PIN", "246810")  # noqa: F405

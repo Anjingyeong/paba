@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import cast
 
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -37,9 +38,20 @@ def manager_login(request: HttpRequest) -> HttpResponse:
         username=request.POST.get("username", ""),
         password=request.POST.get("password", ""),
     )
-    # Only staff/managers with a confirmed TOTP may proceed; anything else is a
-    # generic failure that reveals nothing.
-    if user is None or not services.has_confirmed_totp(cast(User, user)):
+    if user is None:
+        return render(request, "auth/login.html", {"error": GENERIC_ERROR}, status=401)
+
+    # DEV-ONLY escape hatch: when MFA is disabled (local settings), a correct
+    # password logs in directly. True everywhere except local dev, so production
+    # and tests always require the confirmed TOTP below.
+    if not settings.MANAGER_MFA_REQUIRED:
+        login(request, cast(User, user))  # rotates the session key
+        stamp_login(request.session)
+        return redirect("manager_console")
+
+    # Only managers with a confirmed TOTP may proceed; anything else is a generic
+    # failure that reveals nothing.
+    if not services.has_confirmed_totp(cast(User, user)):
         return render(request, "auth/login.html", {"error": GENERIC_ERROR}, status=401)
 
     request.session[PENDING_MFA_KEY] = user.pk
@@ -78,7 +90,7 @@ def manager_mfa(request: HttpRequest) -> HttpResponse:
     request.session.pop(PENDING_MFA_KEY, None)
     login(request, user)  # rotates the session key
     stamp_login(request.session)
-    return HttpResponse("ok")
+    return redirect("manager_console")
 
 
 @require_http_methods(["POST"])

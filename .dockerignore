@@ -1,0 +1,42 @@
+# Keep secrets, local state, and PII out of the build context / image.
+.git/
+.gitignore
+.github/
+
+# Python / virtualenv (reinstalled inside the image)
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.uvcache/
+
+# Node / Bun (reinstalled inside the image)
+node_modules/
+
+# Secrets & environment
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# NEVER bake real payroll workbooks / PII into the image
+급여명세서.*.xlsx
+/*.xlsx
+
+# Tooling, evidence, scratch
+.omo/
+.codegraph/
+test-results/
+playwright-report/
+*.log
+
+# Infra state
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+
+# OS
+.DS_Store
+Thumbs.db

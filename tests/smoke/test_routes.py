@@ -16,6 +16,16 @@ from apps.identity.auth.middleware import stamp_login
 from apps.identity.models import AccountRole, Employee
 
 
+def test_home_renders_frontend_entry_points(client: Client) -> None:
+    response = client.get("/")
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'class="pb-landing"' in content
+    assert 'href="/kiosk/"' in content
+    assert 'href="/manager/console/"' in content
+
+
 @pytest.mark.django_db
 def test_kiosk_home_renders(client: Client) -> None:
     response = client.get("/kiosk/")

@@ -7,13 +7,14 @@ import datetime as dt
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.test import Client
+from django.test import Client, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
 from apps.attendance.models import PunchEvent
 from apps.devices.services import activate_device, create_pairing_code
 from apps.devices.views import KIOSK_ACTION_TOKEN_KEY
+from apps.identity.auth import services as identity_services
 from apps.identity.models import Employee
 
 pytestmark = pytest.mark.django_db
@@ -72,3 +73,28 @@ def test_missing_idempotency_key_rejected() -> None:
     client = _paired_client_with_unlock("EMP-1")
     resp = client.post(reverse("attendance:kiosk_punch"), {"kind": "CLOCK_IN"})
     assert resp.status_code == 400
+
+
+@override_settings(DEBUG=True, EMPLOYEE_MASTER_PIN="246810")
+def test_local_kiosk_can_unlock_and_clock_in_without_pairing() -> None:
+    # Given
+    employee = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    identity_services.set_employee_pin(employee, "123456")
+    client = Client()
+    unlock = client.post(
+        reverse("devices:kiosk_unlock"),
+        {"employee_code": "EMP-1", "pin": "246810"},
+    )
+    assert unlock.status_code == 200
+
+    # When
+    response = client.post(
+        reverse("attendance:kiosk_punch"),
+        {"kind": "CLOCK_IN", "idempotency_key": "local-clock-in"},
+    )
+
+    # Then
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "kind": "CLOCK_IN"}

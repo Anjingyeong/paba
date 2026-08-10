@@ -31,7 +31,7 @@ def _login(client: Client, secret: str) -> None:
     resp = client.post(reverse("auth:login"), {"username": "mgr", "password": PASSWORD})
     assert resp.status_code == 302
     resp = client.post(reverse("auth:mfa"), {"token": pyotp.TOTP(secret).now()})
-    assert resp.status_code == 200
+    assert resp.status_code == 302  # redirected to the manager console on success
 
 
 def test_full_login_rotates_session_key() -> None:
@@ -43,6 +43,35 @@ def test_full_login_rotates_session_key() -> None:
     assert "_auth_user_id" in client.session
     assert client.session[LOGIN_AT_KEY]
     assert client.session.session_key != key_before  # rotated on login
+
+
+def test_recovery_code_completes_login() -> None:
+    user, _secret = _manager()
+    codes = services.generate_recovery_codes(user)
+    client = Client()
+    client.get(reverse("auth:login"))
+    client.post(reverse("auth:login"), {"username": "mgr", "password": PASSWORD})
+    resp = client.post(reverse("auth:mfa"), {"recovery_code": codes[0]})
+    assert resp.status_code == 302  # redirected to the console, logged in
+    assert "_auth_user_id" in client.session
+
+
+def test_mfa_required_by_default() -> None:
+    # Test (and production) inherit MANAGER_MFA_REQUIRED = True from base; only
+    # local dev may relax it. This guards against accidentally shipping it off.
+    from django.conf import settings
+
+    assert settings.MANAGER_MFA_REQUIRED is True
+
+
+@override_settings(MANAGER_MFA_REQUIRED=False)
+def test_password_alone_logs_in_when_mfa_disabled() -> None:
+    user, _secret = _manager()
+    client = Client()
+    client.get(reverse("auth:login"))
+    resp = client.post(reverse("auth:login"), {"username": "mgr", "password": PASSWORD})
+    assert resp.status_code == 302  # straight to the console, no TOTP step
+    assert "_auth_user_id" in client.session
 
 
 def test_password_without_totp_does_not_authenticate() -> None:

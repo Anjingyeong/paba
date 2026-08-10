@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime as dt
 
 import pytest
+from django.test import override_settings
 
 from apps.identity.auth import services
 from apps.identity.auth.models import EmployeePin
@@ -43,6 +44,34 @@ def test_set_and_verify_pin() -> None:
     services.set_employee_pin(emp, "123456")
     assert services.verify_employee_pin("EMP-001", "123456").ok is True
     assert services.verify_employee_pin("EMP-001", "000000").ok is False
+
+
+@override_settings(DEBUG=True, EMPLOYEE_MASTER_PIN="246810")
+def test_master_pin_verifies_registered_employee_in_debug() -> None:
+    emp = _employee()
+    services.set_employee_pin(emp, "123456")
+
+    result = services.verify_employee_pin("EMP-001", "246810")
+
+    assert result.ok is True
+    assert EmployeePin.objects.get(employee=emp).failed_attempts == 0
+
+
+@override_settings(DEBUG=False, EMPLOYEE_MASTER_PIN="246810")
+def test_master_pin_is_rejected_outside_debug() -> None:
+    emp = _employee()
+    services.set_employee_pin(emp, "123456")
+
+    result = services.verify_employee_pin("EMP-001", "246810")
+
+    assert result.ok is False
+
+
+@override_settings(DEBUG=True, EMPLOYEE_MASTER_PIN="246810")
+def test_master_pin_does_not_authenticate_unknown_employee() -> None:
+    result = services.verify_employee_pin("NO-SUCH-EMP", "246810")
+
+    assert result.ok is False
 
 
 def test_lockout_after_ten_failures() -> None:

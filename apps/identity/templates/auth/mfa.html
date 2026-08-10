@@ -15,10 +15,22 @@
       {% csrf_token %}
       <label class="pb-field">
         <span>인증 코드</span>
-        <input class="pb-input" name="token" inputmode="numeric" autocomplete="one-time-code" required />
+        <input class="pb-input" name="token" inputmode="numeric" autocomplete="one-time-code" />
       </label>
       <button class="pb-btn" type="submit">로그인</button>
     </form>
+
+    <details class="pb-field">
+      <summary>인증 앱을 쓸 수 없나요? 복구 코드로 로그인</summary>
+      <form method="post" action="{% url 'auth:mfa' %}">
+        {% csrf_token %}
+        <label class="pb-field">
+          <span>복구 코드</span>
+          <input class="pb-input" name="recovery_code" autocomplete="off" />
+        </label>
+        <button class="pb-btn" type="submit">복구 코드로 로그인</button>
+      </form>
+    </details>
   </main>
 </body>
 </html>

@@ -12,6 +12,8 @@ from django.utils import timezone
 
 from apps.devices import services
 from apps.devices.models import KioskDevice, PairingCode
+from apps.identity.auth import services as identity_services
+from apps.identity.models import Employee
 
 pytestmark = pytest.mark.django_db
 
@@ -77,3 +79,28 @@ def test_activate_view_rejects_bad_code() -> None:
     client = Client()
     response = client.post(reverse("devices:kiosk_activate"), {"code": "deadbeef"})
     assert response.status_code == 400
+
+
+@override_settings(DEBUG=True, EMPLOYEE_MASTER_PIN="246810")
+def test_local_kiosk_unlock_returns_current_shift_state() -> None:
+    # Given
+    employee = Employee.objects.create(
+        employee_code="EMP-001",
+        display_name="테스트 직원",
+        hire_date=dt.date(2026, 1, 1),
+    )
+    identity_services.set_employee_pin(employee, "123456")
+
+    # When
+    response = Client().post(
+        reverse("devices:kiosk_unlock"),
+        {"employee_code": "EMP-001", "pin": "246810"},
+    )
+
+    # Then
+    assert response.status_code == 200
+    assert response.json() == {
+        "ok": True,
+        "employee_name": "테스트 직원",
+        "shift_state": "IDLE",
+    }

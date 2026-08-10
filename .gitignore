@@ -21,6 +21,9 @@ assets/vendor/
 
 # Evidence & scratch
 .omo/evidence/
+.omo/ulw-loop/
+test-results/
+playwright-report/
 
 # OS
 .DS_Store

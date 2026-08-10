@@ -142,6 +142,11 @@ from datetime import timedelta  # noqa: E402
 SESSION_IDLE_TIMEOUT = timedelta(minutes=15)
 SESSION_ABSOLUTE_TIMEOUT = timedelta(hours=8)
 
+# Manager TOTP MFA is mandatory everywhere by default. ONLY local dev may relax it
+# (see settings/local.py) so a manager can log in with a password alone. Production
+# and test inherit this True and must never disable it.
+MANAGER_MFA_REQUIRED = True
+
 # Paired-kiosk device cookie: host-only, Secure, HttpOnly, SameSite=Strict.
 KIOSK_COOKIE_NAME = "__Host-kiosk"
 KIOSK_COOKIE_SECURE = True

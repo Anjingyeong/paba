@@ -3,14 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>점장 로그인</title>
+  <meta name="description" content="파리바게뜨 매니저 콘솔 로그인" />
+  <title>매니저 로그인 · 파리바게뜨</title>
   <link rel="stylesheet" href="/assets/styles/tokens.css" />
   <link rel="stylesheet" href="/assets/styles/app.css" />
 </head>
 <body>
-  <main class="pb-page">
-    <h1>점장 로그인</h1>
-    {% if error %}<p class="pb-status pb-status--error" role="alert"><span class="pb-status__dot"></span>{{ error }}</p>{% endif %}
+  <a class="pb-skip-link" href="#main-content">본문으로 바로가기</a>
+
+  <main id="main-content" class="pb-page">
+    <a class="pb-brand pb-section" href="/" aria-label="파리바게뜨 인사·급여 홈">
+      <span class="pb-brand__mark" aria-hidden="true">PB</span>
+      <span>
+        <strong>Manager</strong>
+        <small>Secure access</small>
+      </span>
+    </a>
+
+    <p class="pb-eyebrow">Manager console</p>
+    <h1>매니저 로그인</h1>
+    <p>근태와 급여 운영 정보는 관리자 인증 후 확인할 수 있습니다.</p>
+
+    {% if error %}
+      <p class="pb-status pb-status--error" role="alert">
+        <span class="pb-status__dot"></span>{{ error }}
+      </p>
+    {% endif %}
+
     <form method="post" action="{% url 'auth:login' %}">
       {% csrf_token %}
       <label class="pb-field">

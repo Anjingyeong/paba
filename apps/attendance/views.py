@@ -8,6 +8,7 @@ each unlock authorizes exactly one action.
 
 from __future__ import annotations
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
@@ -18,6 +19,7 @@ from django.views.decorators.http import require_POST
 
 from apps.devices.views import KIOSK_ACTION_TOKEN_KEY, device_from_request
 from apps.identity.models import Employee
+from apps.payroll.services.preview import monthly_payroll_lines, parse_month
 
 from .models import Shift
 from .services.punches import InvalidPunch, record_punch
@@ -30,13 +32,24 @@ def attendance_rows() -> QuerySet[Shift]:
 def manager_console(request: HttpRequest) -> HttpResponse:
     if not isinstance(request.user, User) or not request.user.is_staff:
         return HttpResponseForbidden("접근 권한이 없습니다.")
-    return render(request, "manager/console.html", {"attendance_rows": attendance_rows()})
+    selected_month = parse_month(request.GET.get("month", ""))
+    payroll_rows = monthly_payroll_lines(selected_month)
+    return render(
+        request,
+        "manager/console.html",
+        {
+            "attendance_rows": attendance_rows(),
+            "selected_month": selected_month,
+            "payroll_rows": payroll_rows,
+            "payroll_export_ready": bool(payroll_rows) and all(row.ready for row in payroll_rows),
+        },
+    )
 
 
 @require_POST
 def kiosk_punch(request: HttpRequest) -> JsonResponse:
     device = device_from_request(request)
-    if device is None:
+    if device is None and not settings.DEBUG:
         return JsonResponse({"ok": False, "error": "unpaired"}, status=403)
 
     token = request.session.get(KIOSK_ACTION_TOKEN_KEY)

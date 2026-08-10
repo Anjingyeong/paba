@@ -53,6 +53,12 @@ def _state_of_open_shift(shift: Shift | None) -> str:
     return IDLE  # CLOCK_OUT — the shift is already closed
 
 
+def current_shift_state(employee: Employee) -> str:
+    """Return the employee's server-authoritative attendance state."""
+    shift = Shift.objects.filter(employee=employee, closed_at__isnull=True).first()
+    return _state_of_open_shift(shift)
+
+
 def record_punch(
     *,
     employee: Employee,
