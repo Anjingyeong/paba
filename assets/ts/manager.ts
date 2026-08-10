@@ -40,24 +40,8 @@ function wireConfirmDialogs(): void {
   }
 }
 
-function fillBulkTable(): void {
-  const body = document.querySelector<HTMLTableSectionElement>("[data-bulk-rows]");
-  if (!body) return;
-  const rows: string[] = [];
-  for (let i = 1; i <= 100; i++) {
-    const code = `EMP-${String(i).padStart(4, "0")}`;
-    rows.push(
-      `<tr><td data-label="직원">${code}</td>` +
-        `<td data-label="지급시간">${(150 + (i % 40)).toFixed(2)}</td>` +
-        `<td data-label="상태">${i % 7 === 0 ? "검토" : "승인"}</td></tr>`,
-    );
-  }
-  body.innerHTML = rows.join("");
-}
-
 function wire(): void {
   wireConfirmDialogs();
-  fillBulkTable();
   document.documentElement.dataset.pbManager = "ready";
 }
 

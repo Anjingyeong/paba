@@ -8,7 +8,9 @@ each unlock authorizes exactly one action.
 
 from __future__ import annotations
 
-from django.http import HttpRequest, JsonResponse
+from django.db.models import QuerySet
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST
@@ -16,7 +18,16 @@ from django.views.decorators.http import require_POST
 from apps.devices.views import KIOSK_ACTION_TOKEN_KEY, device_from_request
 from apps.identity.models import Employee
 
+from .models import Shift
 from .services.punches import InvalidPunch, record_punch
+
+
+def attendance_rows() -> QuerySet[Shift]:
+    return Shift.objects.select_related("employee").order_by("-opened_at", "-pk")
+
+
+def manager_console(request: HttpRequest) -> HttpResponse:
+    return render(request, "manager/console.html", {"attendance_rows": attendance_rows()})
 
 
 @require_POST

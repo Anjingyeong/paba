@@ -33,15 +33,7 @@
               <tr><th scope="col">직원</th><th scope="col">근무 시작</th><th scope="col">상태</th></tr>
             </thead>
             <tbody data-attendance-rows>
-              {% for attendance_row in attendance_rows %}
-                <tr data-attendance-row>
-                  <td data-label="직원">{{ attendance_row.employee.employee_code }}</td>
-                  <td data-label="근무 시작">{{ attendance_row.opened_at|date:"Y-m-d H:i" }}</td>
-                  <td data-label="상태">{% if attendance_row.is_open %}근무 중{% else %}근무 완료{% endif %}</td>
-                </tr>
-              {% empty %}
-                <tr data-attendance-empty><td colspan="3">표시할 실시간 근태 기록이 없습니다.</td></tr>
-              {% endfor %}
+              <tr data-attendance-empty><td colspan="3">표시할 실시간 근태 기록이 없습니다.</td></tr>
             </tbody>
           </table>
         </div>

@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
+from apps.attendance.views import manager_console
+from apps.devices.views import kiosk_home
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
-from django.views.generic import TemplateView
 
 urlpatterns = [
     path("health/", include("apps.health.urls")),
-    # Server-rendered UI shells (assets load from STATIC_URL="/assets/").
-    path("kiosk/", TemplateView.as_view(template_name="kiosk/states.html"), name="kiosk_home"),
+    path("kiosk/", kiosk_home, name="kiosk_home"),
     path(
         "manager/console/",
-        login_required(TemplateView.as_view(template_name="manager/console.html")),
+        login_required(manager_console),
         name="manager_console",
     ),
     path("manager/", include("apps.identity.auth.urls")),

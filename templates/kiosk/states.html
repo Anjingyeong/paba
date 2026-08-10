@@ -16,6 +16,16 @@
     <section class="pb-kiosk__state" data-state="locked" data-announce="잠금 화면입니다" hidden>
       <h1 class="pb-kiosk__title">파리바게트 출퇴근</h1>
       <button type="button" class="pb-btn pb-kiosk__action" data-go="pin">시작하기</button>
+      <section aria-labelledby="device-states-heading">
+        <h2 id="device-states-heading">실시간 기기 상태</h2>
+        <ul>
+          {% for device in device_states %}
+            <li data-device-state>{{ device.name }}: {% if device.is_active %}활성{% else %}해제됨{% endif %}</li>
+          {% empty %}
+            <li data-device-empty>실시간 기기 상태가 없습니다.</li>
+          {% endfor %}
+        </ul>
+      </section>
     </section>
 
     <!-- Employee code + PIN -->
@@ -38,7 +48,7 @@
 
     <!-- Single current action -->
     <section class="pb-kiosk__state" data-state="action" data-announce="근무 중입니다" hidden>
-      <p class="pb-kiosk__name" data-employee-name>직원 A</p>
+      <p class="pb-kiosk__name" data-employee-name></p>
       <button type="button" class="pb-btn pb-kiosk__action" data-go="break">휴게 시작</button>
       <button type="button" class="pb-btn pb-kiosk__action" data-go="success">퇴근</button>
       <button type="button" class="pb-btn pb-btn--secondary" data-go="correction">정정 요청</button>
@@ -46,7 +56,7 @@
 
     <!-- On break -->
     <section class="pb-kiosk__state" data-state="break" data-announce="휴게 중입니다" hidden>
-      <p class="pb-kiosk__name" data-employee-name>직원 A</p>
+      <p class="pb-kiosk__name" data-employee-name></p>
       <button type="button" class="pb-btn pb-kiosk__action" data-go="success">휴게 종료</button>
     </section>
 

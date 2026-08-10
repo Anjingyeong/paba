@@ -3,12 +3,12 @@ import { expect, test } from "@playwright/test";
 
 /**
  * Manager console acceptance: the fixed-sidenav / scroll-body shell stays usable
- * across 375/768/1280 and at 200% zoom with a 100-row table, keyboard focus, no
+ * across 375/768/1280 and at 200% zoom with an honest empty table, keyboard focus, no
  * horizontal overflow, and zero serious/critical axe violations. Sensitive actions
  * require a typed reason.
  */
 
-const CONSOLE = "/templates/manager/console.html";
+const CONSOLE = "/tests/e2e/fixtures/manager-console-empty.html";
 
 const VIEWPORTS = [
   { name: "sm-375", width: 375, height: 720 },
@@ -16,9 +16,14 @@ const VIEWPORTS = [
   { name: "lg-1280", width: 1280, height: 800 },
 ];
 
-test("renders 100 exception rows", async ({ page }) => {
+test("keeps the server-rendered attendance contract without fabricated rows", async ({ page }) => {
   await page.goto(CONSOLE);
-  await expect(page.locator("[data-bulk-rows] tr")).toHaveCount(100);
+  await expect(page.locator("[data-attendance-row]")).toHaveCount(0);
+  await expect(page.locator("[data-attendance-empty]")).toHaveCount(1);
+  await expect(page.locator("[data-attendance-empty]")).toContainText(
+    "표시할 실시간 근태 기록이 없습니다.",
+  );
+  await expect(page.locator("body")).not.toContainText("EMP-0001");
 });
 
 test("reopen requires a typed reason", async ({ page }) => {
@@ -34,9 +39,9 @@ for (const vp of VIEWPORTS) {
   test.describe(`viewport ${vp.name}`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
 
-    test("no horizontal overflow with the bulk table", async ({ page }) => {
+    test("no horizontal overflow with the attendance table", async ({ page }) => {
       await page.goto(CONSOLE);
-      await page.locator("[data-bulk-rows] tr").last().waitFor();
+      await page.locator("[data-attendance-empty]").waitFor();
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );
@@ -45,7 +50,7 @@ for (const vp of VIEWPORTS) {
 
     test("no serious or critical axe violations", async ({ page }) => {
       await page.goto(CONSOLE);
-      await page.locator("[data-bulk-rows] tr").last().waitFor();
+      await page.locator("[data-attendance-empty]").waitFor();
       const results = await new AxeBuilder({ page }).analyze();
       const blocking = results.violations.filter(
         (v) => v.impact === "serious" || v.impact === "critical",

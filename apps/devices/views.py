@@ -18,6 +18,7 @@ from typing import cast
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -31,6 +32,14 @@ from .models import KioskDevice
 KIOSK_ACTION_TOKEN_KEY = "_kiosk_action"  # noqa: S105 - session key name, not a secret
 KIOSK_ACTION_TTL = timedelta(minutes=2)
 GENERIC_UNLOCK_ERROR = "직원코드 또는 PIN이 올바르지 않습니다."
+
+
+def device_states() -> QuerySet[KioskDevice]:
+    return KioskDevice.objects.order_by("name", "pk")
+
+
+def kiosk_home(request: HttpRequest) -> HttpResponse:
+    return render(request, "kiosk/states.html", {"device_states": device_states()})
 
 
 def device_from_request(request: HttpRequest) -> KioskDevice | None:
