@@ -6,10 +6,12 @@ import datetime as dt
 
 import pytest
 from django.db import InternalError, ProgrammingError, transaction
+from django.db.backends.postgresql.psycopg_any import DateRange
 from django.utils import timezone
 
 from apps.attendance.models import PunchEvent, PunchKind, Shift
 from apps.identity.models import Employee
+from apps.payroll.models import EmploymentTerms
 from apps.payroll.models.close import PayrollSnapshot, PeriodStatus, SnapshotImmutableError
 from apps.payroll.services.close import (
     CloseBlocked,
@@ -123,6 +125,98 @@ def test_complete_month_boundary_week_does_not_block(monkeypatch) -> None:
     }
     snap = close_period(period=period, payload=payload)
     assert snap.version == 1
+
+
+def test_close_uses_effective_terms_weekly_rest_weekday(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: dt.date(2026, 8, 1))
+    period = _period()
+    emp = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    EmploymentTerms.objects.create(
+        employee=emp,
+        effective=DateRange(dt.date(2026, 7, 1), None),
+        weekly_rest_weekday=2,
+        work_weekdays=[0, 1, 3, 4, 5],
+        daily_scheduled_hours="8.00",
+        scheduled_weekly_hours="40.00",
+        ordinary_worker_reference_days="5.00",
+    )
+    payload = {
+        "lines": [
+            {
+                "employee_id": emp.employee_code,
+                "net": 100,
+                "insurance_final": True,
+                "weekly_rest_weekday": 6,
+            }
+        ]
+    }
+
+    with pytest.raises(CloseBlocked) as exc:
+        close_period(period=period, payload=payload)
+
+    assert "MONTH_BOUNDARY_WEEK_INCOMPLETE" in exc.value.blockers
+
+
+def test_close_effective_end_is_exclusive(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: dt.date(2026, 8, 1))
+    period = _period()
+    emp = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    EmploymentTerms.objects.create(
+        employee=emp,
+        effective=DateRange(dt.date(2026, 1, 1), dt.date(2026, 8, 1)),
+        weekly_rest_weekday=2,
+        work_weekdays=[0, 1, 3, 4, 5],
+        daily_scheduled_hours="8.00",
+        scheduled_weekly_hours="40.00",
+        ordinary_worker_reference_days="5.00",
+    )
+    payload = {
+        "lines": [
+            {
+                "employee_id": emp.employee_code,
+                "net": 100,
+                "insurance_final": True,
+                "weekly_rest_weekday": 6,
+            }
+        ]
+    }
+
+    snap = close_period(period=period, payload=payload)
+
+    assert snap.version == 1
+
+
+def test_close_falls_back_to_caller_weekday_without_active_terms(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: dt.date(2026, 8, 1))
+    period = _period()
+    emp = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    payload = {
+        "lines": [
+            {
+                "employee_id": emp.employee_code,
+                "net": 100,
+                "insurance_final": True,
+                "weekly_rest_weekday": 2,
+            }
+        ]
+    }
+
+    with pytest.raises(CloseBlocked) as exc:
+        close_period(period=period, payload=payload)
+
+    assert "MONTH_BOUNDARY_WEEK_INCOMPLETE" in exc.value.blockers
 
 
 def test_snapshot_is_immutable_at_model_and_db() -> None:

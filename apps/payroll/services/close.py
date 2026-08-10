@@ -20,6 +20,7 @@ from django.utils import timezone
 from apps.attendance.models import PunchEvent, Shift
 from apps.attendance.services.approvals import APPROVED, approval_status
 from apps.auditlog import services as audit
+from apps.payroll.models import EmploymentTerms
 from apps.payroll.models.close import PayrollPeriod, PayrollSnapshot, PeriodStatus
 from apps.payroll.services.earnings import is_month_boundary_week_complete
 
@@ -56,10 +57,33 @@ def prepare_previous_month(today: date) -> PayrollPeriod:
     return prepare_period(prev)
 
 
+def _effective_weekly_rest_weekday(
+    employee_id: str | None,
+    business_date: date,
+    caller_weekday: int | None,
+) -> int | None:
+    """Resolve an employee's rest day for the close business date."""
+    if employee_id is None:
+        return caller_weekday
+
+    term_weekday = (
+        EmploymentTerms.objects.filter(
+            employee__employee_code=employee_id,
+            effective__contains=business_date,
+            weekly_rest_weekday__isnull=False,
+        )
+        .order_by("-effective", "-pk")
+        .values_list("weekly_rest_weekday", flat=True)
+        .first()
+    )
+    return caller_weekday if term_weekday is None else term_weekday
+
+
 def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
     """Return every reason the period cannot close (empty list ⇒ ready)."""
     blockers: set[str] = set()
     month = period.month
+    business_date = timezone.localdate()
     # Timezone-aware month bounds so DateTimeField comparisons are exact.
     month_start = timezone.make_aware(datetime.combine(month, time.min))
     month_end = timezone.make_aware(datetime.combine(_first_of_next_month(month), time.min))
@@ -98,9 +122,11 @@ def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
             blockers.add("TIME_BLOCKER")
         # Month-boundary week completeness: computed from the employee's weekly rest
         # day when provided, else an explicit caller flag.
-        rest_weekday = line.get("weekly_rest_weekday")
+        rest_weekday = _effective_weekly_rest_weekday(
+            line.get("employee_id"), business_date, line.get("weekly_rest_weekday")
+        )
         if rest_weekday is not None:
-            if not is_month_boundary_week_complete(month, rest_weekday, timezone.localdate()):
+            if not is_month_boundary_week_complete(month, rest_weekday, business_date):
                 blockers.add("MONTH_BOUNDARY_WEEK_INCOMPLETE")
         elif not line.get("month_boundary_week_complete", True):
             blockers.add("MONTH_BOUNDARY_WEEK_INCOMPLETE")
