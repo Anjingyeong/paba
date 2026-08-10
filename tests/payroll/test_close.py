@@ -137,7 +137,7 @@ def test_close_uses_effective_terms_weekly_rest_weekday(monkeypatch) -> None:
     )
     EmploymentTerms.objects.create(
         employee=emp,
-        effective=DateRange(dt.date(2026, 7, 1), None),
+        effective=DateRange(dt.date(2026, 8, 1), None),
         weekly_rest_weekday=2,
         work_weekdays=[0, 1, 3, 4, 5],
         daily_scheduled_hours="8.00",
@@ -159,6 +159,50 @@ def test_close_uses_effective_terms_weekly_rest_weekday(monkeypatch) -> None:
         close_period(period=period, payload=payload)
 
     assert "MONTH_BOUNDARY_WEEK_INCOMPLETE" in exc.value.blockers
+
+
+def test_close_resolves_terms_against_supplied_business_date(monkeypatch) -> None:
+    import apps.payroll.services.close as close_mod
+
+    period = _period()
+    next_month = (
+        dt.date(period.month.year + 1, 1, 1)
+        if period.month.month == 12
+        else dt.date(period.month.year, period.month.month + 1, 1)
+    )
+    close_business_date = next_month - dt.timedelta(days=1)
+    wall_clock_date = next_month + dt.timedelta(days=9)
+    emp = Employee.objects.create(
+        employee_code="EMP-1", display_name="직원", hire_date=dt.date(2026, 1, 1)
+    )
+    EmploymentTerms.objects.create(
+        employee=emp,
+        effective=DateRange(next_month, None),
+        weekly_rest_weekday=2,
+        work_weekdays=[0, 1, 3, 4, 5],
+        daily_scheduled_hours="8.00",
+        scheduled_weekly_hours="40.00",
+        ordinary_worker_reference_days="5.00",
+    )
+    monkeypatch.setattr(close_mod.timezone, "localdate", lambda: wall_clock_date)
+    assert close_mod._effective_weekly_rest_weekday(
+        emp.employee_code, close_business_date, 6
+    ) == 6
+
+    payload = {
+        "lines": [
+            {
+                "employee_id": emp.employee_code,
+                "net": 100,
+                "insurance_final": True,
+                "weekly_rest_weekday": 6,
+            }
+        ]
+    }
+
+    snap = close_period(period=period, payload=payload)
+
+    assert snap.version == 1
 
 
 def test_close_effective_end_is_exclusive(monkeypatch) -> None:
