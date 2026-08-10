@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from apps.attendance.views import manager_console
-from apps.devices.views import kiosk_home
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
+
+from apps.attendance.views import manager_console
+from apps.devices.views import kiosk_home
 
 urlpatterns = [
     path("health/", include("apps.health.urls")),
