@@ -5,6 +5,8 @@ from __future__ import annotations
 from datetime import date
 
 import pytest
+from django.conf import settings
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.test import Client
 
@@ -23,7 +25,13 @@ def test_kiosk_home_renders(client: Client) -> None:
 
 @pytest.mark.django_db
 def test_kiosk_live_context(client: Client) -> None:
-    KioskDevice.objects.create(name="LIVE-KIOSK-01", secret_hash="not-a-real-secret")
+    secret = "live-kiosk-secret"
+    device = KioskDevice.objects.create(
+        name="LIVE-KIOSK-01",
+        secret_hash=make_password(secret),
+    )
+    KioskDevice.objects.create(name="OTHER-KIOSK-02", secret_hash=make_password("other-secret"))
+    client.cookies[settings.KIOSK_COOKIE_NAME] = f"{device.pk}:{secret}"
     Employee.objects.create(
         employee_code="HIDDEN-EMP-01",
         display_name="Must not be listed",
@@ -34,6 +42,7 @@ def test_kiosk_live_context(client: Client) -> None:
 
     content = response.content.decode()
     assert "LIVE-KIOSK-01" in content
+    assert "OTHER-KIOSK-02" not in content
     assert "HIDDEN-EMP-01" not in content
     assert content.count("data-device-state") == 1
 
@@ -59,6 +68,16 @@ def test_manager_console_requires_login(client: Client) -> None:
     response = client.get("/manager/console/")
     assert response.status_code == 302
     assert "/manager/login/" in response.headers["Location"]
+
+
+@pytest.mark.django_db
+def test_manager_console_rejects_non_staff(client: Client) -> None:
+    user = User.objects.create_user(username="nonstaff-manager")
+    _authenticate_manager(client, user)
+
+    response = client.get("/manager/console/")
+
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db

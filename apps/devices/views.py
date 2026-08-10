@@ -34,12 +34,15 @@ KIOSK_ACTION_TTL = timedelta(minutes=2)
 GENERIC_UNLOCK_ERROR = "직원코드 또는 PIN이 올바르지 않습니다."
 
 
-def device_states() -> QuerySet[KioskDevice]:
-    return KioskDevice.objects.order_by("name", "pk")
+def device_states(request: HttpRequest) -> QuerySet[KioskDevice]:
+    device = device_from_request(request)
+    if device is None:
+        return KioskDevice.objects.none()
+    return KioskDevice.objects.filter(pk=device.pk)
 
 
 def kiosk_home(request: HttpRequest) -> HttpResponse:
-    return render(request, "kiosk/states.html", {"device_states": device_states()})
+    return render(request, "kiosk/states.html", {"device_states": device_states(request)})
 
 
 def device_from_request(request: HttpRequest) -> KioskDevice | None:

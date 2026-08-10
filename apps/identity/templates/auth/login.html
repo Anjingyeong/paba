@@ -1,15 +1,27 @@
 <!doctype html>
 <html lang="ko">
-<head><meta charset="utf-8"><title>점장 로그인</title></head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>점장 로그인</title>
+  <link rel="stylesheet" href="/assets/styles/tokens.css" />
+  <link rel="stylesheet" href="/assets/styles/app.css" />
+</head>
 <body>
-  <main>
+  <main class="pb-page">
     <h1>점장 로그인</h1>
-    {% if error %}<p role="alert">{{ error }}</p>{% endif %}
+    {% if error %}<p class="pb-status pb-status--error" role="alert"><span class="pb-status__dot"></span>{{ error }}</p>{% endif %}
     <form method="post" action="{% url 'auth:login' %}">
       {% csrf_token %}
-      <label>아이디 <input name="username" autocomplete="username" required></label>
-      <label>비밀번호 <input type="password" name="password" autocomplete="current-password" required></label>
-      <button type="submit">다음</button>
+      <label class="pb-field">
+        <span>아이디</span>
+        <input class="pb-input" name="username" autocomplete="username" required />
+      </label>
+      <label class="pb-field">
+        <span>비밀번호</span>
+        <input class="pb-input" type="password" name="password" autocomplete="current-password" required />
+      </label>
+      <button class="pb-btn" type="submit">다음</button>
     </form>
   </main>
 </body>

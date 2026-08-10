@@ -9,7 +9,7 @@ each unlock authorizes exactly one action.
 from __future__ import annotations
 
 from django.db.models import QuerySet
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -27,6 +27,8 @@ def attendance_rows() -> QuerySet[Shift]:
 
 
 def manager_console(request: HttpRequest) -> HttpResponse:
+    if not request.user.is_staff:
+        return HttpResponseForbidden("접근 권한이 없습니다.")
     return render(request, "manager/console.html", {"attendance_rows": attendance_rows()})
 
 

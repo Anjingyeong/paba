@@ -16,7 +16,7 @@ const VIEWPORTS = [
   { name: "lg-1280", width: 1280, height: 800 },
 ];
 
-test("keeps the server-rendered attendance contract without fabricated rows", async ({ page }) => {
+test("keeps the empty attendance fixture honest without fabricated rows", async ({ page }) => {
   await page.goto(CONSOLE);
   await expect(page.locator("[data-attendance-row]")).toHaveCount(0);
   await expect(page.locator("[data-attendance-empty]")).toHaveCount(1);
