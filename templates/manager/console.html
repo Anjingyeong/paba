@@ -3,98 +3,118 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>점장 콘솔</title>
+  <meta name="description" content="매장 근태와 월 급여명세서 관리" />
+  <title>매니저 콘솔 · 파리바게뜨</title>
   <link rel="stylesheet" href="/assets/styles/tokens.css" />
   <link rel="stylesheet" href="/assets/styles/app.css" />
+  <link rel="stylesheet" href="/assets/styles/manager.css" />
 </head>
 <body>
+  <a class="pb-skip-link" href="#main-content">본문으로 바로가기</a>
   <div class="pb-shell">
-    <nav class="pb-shell__nav" aria-label="점장 내비게이션">
-      <a href="#today" aria-current="page">오늘 현황</a>
-      <a href="#exceptions">예외 큐</a>
-      <a href="#preview">급여 미리보기</a>
-      <a href="#insurance">보험 대사</a>
-      <a href="#close">마감/재오픈</a>
-      <a href="#exports">내보내기</a>
-      <a href="#audit">감사 기록</a>
-    </nav>
+    <aside class="pb-shell__nav" aria-label="매니저 내비게이션">
+      <div class="pb-shell__brand">
+        <a class="pb-brand" href="/" aria-label="홈">
+          <span class="pb-brand__mark" aria-hidden="true">PB</span>
+          <span><strong>Manager</strong><small>Attendance & payroll</small></span>
+        </a>
+      </div>
+      <nav class="pb-shell__nav-list">
+        <a href="#today" aria-current="page">오늘 현황</a>
+        <a href="#attendance">근무 기록</a>
+        <a href="#preview">급여명세서</a>
+      </nav>
+      <div class="pb-shell__nav-meta"><strong>핵심 흐름</strong><span>출결 확인 후 월 급여명세서를 내려받습니다.</span></div>
+    </aside>
 
-    <main class="pb-shell__body">
-      <section id="today" class="pb-section" aria-labelledby="today-h">
-        <h1 id="today-h">오늘 현황</h1>
-        <p>실시간 근태 기록을 표시합니다.</p>
-      </section>
+    <main id="main-content" class="pb-shell__body">
+      <div class="pb-shell__body-inner">
+        <header id="today" class="pb-manager-hero">
+          <div>
+            <p class="pb-eyebrow">Store operations</p>
+            <h1>출결과 급여를 한 번에</h1>
+            <p>태블릿에서 기록된 근무시간을 확인하고 월별 급여명세서를 내려받으세요.</p>
+          </div>
+          <span class="pb-chip">관리자 전용</span>
+        </header>
 
-      <section id="exceptions" class="pb-section" aria-labelledby="exc-h">
-        <h2 id="exc-h">실시간 근태 기록</h2>
-        <div class="pb-table-wrap">
-          <table class="pb-table">
-            <thead>
-              <tr><th scope="col">직원</th><th scope="col">근무 시작</th><th scope="col">상태</th></tr>
-            </thead>
-            <tbody data-attendance-rows>
-              {% for attendance_row in attendance_rows %}
-                <tr data-attendance-row>
-                  <td data-label="직원">{{ attendance_row.employee.employee_code }}</td>
-                  <td data-label="근무 시작">{{ attendance_row.opened_at|date:"Y-m-d H:i" }}</td>
-                  <td data-label="상태">{% if attendance_row.is_open %}근무 중{% else %}근무 완료{% endif %}</td>
-                </tr>
-              {% empty %}
-                <tr data-attendance-empty><td colspan="3">표시할 실시간 근태 기록이 없습니다.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+        <section class="pb-manager-grid" aria-label="운영 요약">
+          <article class="pb-stat"><span class="pb-stat__label">근무 기록</span><strong class="pb-stat__value">{{ attendance_rows|length }}</strong></article>
+          <article class="pb-stat"><span class="pb-stat__label">급여 대상 직원</span><strong class="pb-stat__value">{{ payroll_rows|length }}</strong></article>
+          <article class="pb-stat"><span class="pb-stat__label">선택 월</span><strong class="pb-stat__value">{{ selected_month|date:"Y.m" }}</strong></article>
+        </section>
+
+        <div class="pb-manager-stack">
+          <section id="attendance" class="pb-panel pb-manager-section" aria-labelledby="attendance-heading">
+            <div class="pb-panel__header">
+              <div><p class="pb-eyebrow">Attendance</p><h2 id="attendance-heading">실시간 근무 기록</h2><p>태블릿에서 저장한 출근·퇴근 기록입니다.</p></div>
+              <span class="pb-status pb-status--success"><span class="pb-status__dot"></span>서버 연결됨</span>
+            </div>
+            <div class="pb-table-wrap">
+              <table class="pb-table">
+                <thead><tr><th scope="col">직원</th><th scope="col">근무 시작</th><th scope="col">상태</th></tr></thead>
+                <tbody data-attendance-rows>
+                  {% for attendance_row in attendance_rows %}
+                    <tr data-attendance-row>
+                      <td data-label="직원">{{ attendance_row.employee.display_name }} · {{ attendance_row.employee.employee_code }}</td>
+                      <td data-label="근무 시작">{{ attendance_row.opened_at|date:"Y-m-d H:i" }}</td>
+                      <td data-label="상태"><span class="pb-status {% if attendance_row.is_open %}pb-status--success{% endif %}"><span class="pb-status__dot"></span>{% if attendance_row.is_open %}근무 중{% else %}근무 완료{% endif %}</span></td>
+                    </tr>
+                  {% empty %}
+                    <tr data-attendance-empty><td colspan="3"><div class="pb-empty"><strong>근무 기록이 없습니다</strong><span>표시할 실시간 근태 기록이 없습니다.</span></div></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="preview" class="pb-panel pb-manager-section" aria-labelledby="payroll-heading">
+            <div class="pb-panel__header">
+              <div><p class="pb-eyebrow">Monthly payroll</p><h2 id="payroll-heading">월 급여명세서</h2><p>직원별 시급을 저장하면 해당 월 근무시간으로 기본급이 계산됩니다.</p></div>
+              <form class="pb-month-picker" method="get" action="/manager/console/">
+                <label><span>조회 월</span><input class="pb-input" type="month" name="month" value="{{ selected_month|date:'Y-m' }}" /></label>
+                <button class="pb-btn pb-btn--secondary" type="submit">조회</button>
+              </form>
+            </div>
+            <div class="pb-table-wrap">
+              <table class="pb-table">
+                <thead><tr><th scope="col">직원</th><th scope="col">근무시간</th><th scope="col">시급</th><th scope="col">기본급</th><th scope="col">상태</th></tr></thead>
+                <tbody>
+                  {% for row in payroll_rows %}
+                    <tr data-payroll-row="{{ row.employee_code }}" data-gross-pay="{{ row.gross_pay }}">
+                      <td data-label="직원"><strong>{{ row.display_name }}</strong><br /><small>{{ row.employee_code }}</small></td>
+                      <td data-label="근무시간">{{ row.total_hours|floatformat:2 }}시간</td>
+                      <td data-label="시급">
+                        <form class="pb-wage-form" method="post" action="{% url 'payroll:update_hourly_wage' %}">
+                          {% csrf_token %}
+                          <input type="hidden" name="employee_code" value="{{ row.employee_code }}" />
+                          <input type="hidden" name="month" value="{{ selected_month|date:'Y-m' }}" />
+                          <input class="pb-input" name="hourly_wage" inputmode="numeric" value="{% if row.hourly_wage %}{{ row.hourly_wage }}{% endif %}" placeholder="시급 입력" required />
+                          <button class="pb-btn pb-btn--secondary" type="submit">저장</button>
+                        </form>
+                      </td>
+                      <td data-label="기본급"><strong>{{ row.gross_pay }}원</strong></td>
+                      <td data-label="상태">{% if row.ready %}<span class="pb-status pb-status--success"><span class="pb-status__dot"></span>계산 완료</span>{% else %}<span class="pb-status pb-status--warning"><span class="pb-status__dot"></span>시급·근태 확인</span>{% endif %}</td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="5"><div class="pb-empty"><strong>급여 대상 직원이 없습니다</strong><span>직원을 먼저 등록해주세요.</span></div></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            <div class="pb-payroll-actions">
+              {% if payroll_export_ready %}
+                <a class="pb-btn" href="{% url 'payroll:download_statements' %}?month={{ selected_month|date:'Y-m' }}">급여명세서 ZIP 다운로드</a>
+              {% else %}
+                <button class="pb-btn" type="button" disabled>급여명세서 ZIP 다운로드</button>
+                <span>모든 직원의 시급과 근태 오류를 먼저 확인해주세요.</span>
+              {% endif %}
+            </div>
+          </section>
         </div>
-      </section>
-
-      <section id="preview" class="pb-section" aria-labelledby="prev-h">
-        <h2 id="prev-h">급여 미리보기</h2>
-        <p>마감 전 확인 화면입니다.</p>
-      </section>
-
-      <section id="insurance" class="pb-section" aria-labelledby="ins-h">
-        <h2 id="ins-h">보험 대사</h2>
-        <form onsubmit="return false">
-          <label class="pb-field">
-            <span>건강보험 기관 고지액</span>
-            <input class="pb-input" name="health_final" inputmode="numeric" />
-          </label>
-          <label class="pb-field">
-            <span>사유</span>
-            <input class="pb-input" name="reason" />
-          </label>
-          <button type="button" class="pb-btn">대사 완료</button>
-        </form>
-      </section>
-
-      <section id="close" class="pb-section" aria-labelledby="close-h">
-        <h2 id="close-h">월마감 / 재오픈</h2>
-        <button type="button" class="pb-btn" data-confirm="reopen-dialog">재오픈</button>
-        <dialog id="reopen-dialog" aria-label="재오픈 확인">
-          <form method="dialog" class="pb-field">
-            <p>재오픈하려면 사유를 입력하세요.</p>
-            <label>
-              <span>사유</span>
-              <input class="pb-input" data-reason name="reason" />
-            </label>
-            <button type="button" class="pb-btn" data-submit disabled>확인</button>
-            <button type="button" class="pb-btn pb-btn--secondary" data-cancel>취소</button>
-          </form>
-        </dialog>
-      </section>
-
-      <section id="exports" class="pb-section" aria-labelledby="exp-h">
-        <h2 id="exp-h">내보내기</h2>
-        <p>내보내기 기록은 이 화면에서 제공하지 않습니다.</p>
-      </section>
-
-      <section id="audit" class="pb-section" aria-labelledby="audit-h">
-        <h2 id="audit-h">감사 기록</h2>
-        <p>감사 기록은 이 화면에서 제공하지 않습니다.</p>
-      </section>
+      </div>
     </main>
   </div>
-
   <script type="module" src="/assets/vendor/manager.js"></script>
 </body>
 </html>

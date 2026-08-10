@@ -40,7 +40,26 @@ function wireConfirmDialogs(): void {
   }
 }
 
+function wireSectionNavigation(): void {
+  const links = document.querySelectorAll<HTMLAnchorElement>(".pb-shell__nav-list a[href^='#']");
+
+  const sync = (): void => {
+    const target = window.location.hash || "#today";
+    for (const link of links) {
+      if (link.getAttribute("href") === target) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    }
+  };
+
+  window.addEventListener("hashchange", sync);
+  sync();
+}
+
 function wire(): void {
+  wireSectionNavigation();
   wireConfirmDialogs();
   document.documentElement.dataset.pbManager = "ready";
 }

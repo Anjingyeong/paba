@@ -1,33 +1,39 @@
-/*
- * Design tokens — single source of truth for color/type/space/state.
- * Light theme on bare :root; dark under prefers-color-scheme AND [data-theme].
- * See DESIGN.md for the role table and rationale.
- */
-
 :root {
-  --pb-background: #f4f4f4;
-  --pb-layer: #ffffff;
-  --pb-layer-accent: #e8e8e8;
-  --pb-field: #ffffff;
-  --pb-border: #8d8d8d;
-  --pb-text: #161616;
-  --pb-text-secondary: #525252;
-  --pb-interactive: #0f62fe;
-  --pb-on-interactive: #ffffff;
-  --pb-support-error: #da1e28;
-  --pb-support-success: #198038;
-  --pb-support-warning: #b28600;
+  /* Warm bakery palette: parchment + ivory + espresso, with a pâtisserie-berry
+     accent and caramel warmth. Evokes an artisan boulangerie — deliberately not
+     the real Paris Baguette brand blue/logo. All pairs meet WCAG 2.2 AA. */
+  --pb-background: #f6efe4;
+  --pb-background-soft: #efe4d3;
+  --pb-layer: #fffaf3;
+  --pb-layer-raised: #fffdf8;
+  --pb-layer-accent: #f3e7d5;
+  --pb-field: #fffaf3;
+  --pb-border: #e3d3ba;
+  --pb-border-strong: #94774d;
+  --pb-text: #2a1e14;
+  --pb-text-secondary: #6f5b45;
+  --pb-interactive: #9c2743;
+  --pb-interactive-hover: #7f1d36;
+  --pb-interactive-soft: #f6e3e0;
+  --pb-on-interactive: #fffaf3;
+  --pb-support-error: #b23225;
+  --pb-support-success: #2f7d4f;
+  --pb-support-warning: #8a6410;
+  --pb-glow-primary: rgba(156, 39, 67, 0.16);
+  --pb-glow-secondary: rgba(214, 160, 90, 0.22);
+  --pb-sheen: rgba(255, 253, 248, 0.75);
+  --pb-overlay: rgba(46, 30, 20, 0.48);
 
-  --pb-font: "IBM Plex Sans", "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", system-ui,
-    sans-serif;
+  --pb-font: "SUIT", "Pretendard Variable", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic",
+    "Noto Sans KR", system-ui, sans-serif;
 
   --pb-type-caption: 0.75rem;
   --pb-type-body: 1rem;
   --pb-type-body-lg: 1.125rem;
   --pb-type-h3: 1.25rem;
-  --pb-type-h2: 1.5rem;
-  --pb-type-h1: 2rem;
-  --pb-type-display: 2.625rem;
+  --pb-type-h2: 1.625rem;
+  --pb-type-h1: 2.125rem;
+  --pb-type-display: clamp(2.25rem, 5.2vw, 4.25rem);
 
   --pb-space-1: 0.125rem;
   --pb-space-2: 0.25rem;
@@ -37,49 +43,84 @@
   --pb-space-6: 1.5rem;
   --pb-space-7: 2rem;
   --pb-space-8: 3rem;
+  --pb-space-9: 4.5rem;
 
-  --pb-radius: 4px;
+  --pb-radius-sm: 10px;
+  --pb-radius: 16px;
+  --pb-radius-lg: 24px;
+  --pb-radius-pill: 999px;
   --pb-target-min: 44px;
-  --pb-sidenav-width: 16rem;
-  --pb-read-max: 40rem;
+  --pb-sidenav-width: 17.5rem;
+  --pb-read-max: 42rem;
+  --pb-content-max: 72rem;
 
-  --pb-shadow-overlay: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --pb-shadow-card: 0 20px 50px rgba(74, 48, 28, 0.1), 0 2px 8px rgba(74, 48, 28, 0.05);
+  --pb-shadow-raised: 0 28px 70px rgba(74, 48, 28, 0.14), 0 8px 24px rgba(74, 48, 28, 0.08);
+  --pb-shadow-overlay: 0 36px 90px rgba(46, 30, 20, 0.24);
   --pb-z-sticky: 100;
   --pb-z-overlay: 1000;
   --pb-z-toast: 1100;
 
   --pb-focus-width: 2px;
-  --pb-transition: 120ms ease;
+  --pb-motion-fast: 160ms;
+  --pb-motion-base: 260ms;
+  --pb-motion-slow: 420ms;
+  --pb-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --pb-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 :root:not([data-theme="light"]) {
   @media (prefers-color-scheme: dark) {
-    --pb-background: #161616;
-    --pb-layer: #262626;
-    --pb-layer-accent: #393939;
-    --pb-field: #393939;
-    --pb-border: #6f6f6f;
-    --pb-text: #f4f4f4;
-    --pb-text-secondary: #c6c6c6;
-    --pb-interactive: #4589ff;
-    --pb-on-interactive: #161616;
-    --pb-support-error: #ff8389;
-    --pb-support-success: #42be65;
-    --pb-support-warning: #f1c21b;
+    --pb-background: #1b1410;
+    --pb-background-soft: #241a13;
+    --pb-layer: #271d16;
+    --pb-layer-raised: #33261d;
+    --pb-layer-accent: #3b2c21;
+    --pb-field: #2d2118;
+    --pb-border: #4e3c2d;
+    --pb-border-strong: #9c7a4f;
+    --pb-text: #f7efe3;
+    --pb-text-secondary: #d3c1a9;
+    --pb-interactive: #f2a2b3;
+    --pb-interactive-hover: #f7bcc8;
+    --pb-interactive-soft: #4a2a2f;
+    --pb-on-interactive: #1b1410;
+    --pb-support-error: #ff9d94;
+    --pb-support-success: #8fce87;
+    --pb-support-warning: #f2c66b;
+    --pb-glow-primary: rgba(242, 162, 179, 0.18);
+    --pb-glow-secondary: rgba(214, 160, 90, 0.14);
+    --pb-sheen: rgba(255, 255, 255, 0.06);
+    --pb-overlay: rgba(10, 6, 3, 0.7);
+    --pb-shadow-card: 0 20px 50px rgba(8, 5, 2, 0.28), 0 2px 8px rgba(8, 5, 2, 0.16);
+    --pb-shadow-raised: 0 28px 70px rgba(8, 5, 2, 0.38), 0 8px 24px rgba(8, 5, 2, 0.22);
+    --pb-shadow-overlay: 0 36px 90px rgba(8, 5, 2, 0.56);
   }
 }
 
 :root[data-theme="dark"] {
-  --pb-background: #161616;
-  --pb-layer: #262626;
-  --pb-layer-accent: #393939;
-  --pb-field: #393939;
-  --pb-border: #6f6f6f;
-  --pb-text: #f4f4f4;
-  --pb-text-secondary: #c6c6c6;
-  --pb-interactive: #4589ff;
-  --pb-on-interactive: #161616;
-  --pb-support-error: #ff8389;
-  --pb-support-success: #42be65;
-  --pb-support-warning: #f1c21b;
+  --pb-background: #1b1410;
+  --pb-background-soft: #241a13;
+  --pb-layer: #271d16;
+  --pb-layer-raised: #33261d;
+  --pb-layer-accent: #3b2c21;
+  --pb-field: #2d2118;
+  --pb-border: #4e3c2d;
+  --pb-border-strong: #9c7a4f;
+  --pb-text: #f7efe3;
+  --pb-text-secondary: #d3c1a9;
+  --pb-interactive: #f2a2b3;
+  --pb-interactive-hover: #f7bcc8;
+  --pb-interactive-soft: #4a2a2f;
+  --pb-on-interactive: #1b1410;
+  --pb-support-error: #ff9d94;
+  --pb-support-success: #8fce87;
+  --pb-support-warning: #f2c66b;
+  --pb-glow-primary: rgba(242, 162, 179, 0.18);
+  --pb-glow-secondary: rgba(214, 160, 90, 0.14);
+  --pb-sheen: rgba(255, 255, 255, 0.06);
+  --pb-overlay: rgba(10, 6, 3, 0.7);
+  --pb-shadow-card: 0 20px 50px rgba(8, 5, 2, 0.28), 0 2px 8px rgba(8, 5, 2, 0.16);
+  --pb-shadow-raised: 0 28px 70px rgba(8, 5, 2, 0.38), 0 8px 24px rgba(8, 5, 2, 0.22);
+  --pb-shadow-overlay: 0 36px 90px rgba(8, 5, 2, 0.56);
 }

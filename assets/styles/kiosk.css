@@ -1,61 +1,280 @@
-/*
- * Kiosk-specific styles layered on the design tokens (tokens.css) and app.css.
- * The kiosk is a full-screen cover with one large current action; every target
- * is oversized for gloved, one-handed use.
- */
-
-.pb-kiosk__title {
-  font-size: var(--pb-type-h1);
-  text-align: center;
-  margin: 0;
+.pb-kiosk {
+  position: fixed;
+  inset: 0;
+  z-index: var(--pb-z-overlay);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--pb-space-5);
+  min-block-size: 100dvh;
+  padding: var(--pb-space-5);
+  overflow: hidden;
+  background: radial-gradient(circle at 16% 8%, var(--pb-glow-secondary), transparent 32rem),
+    radial-gradient(circle at 84% 4%, var(--pb-glow-primary), transparent 36rem),
+    var(--pb-background);
 }
 
-.pb-kiosk__name {
-  font-size: var(--pb-type-h2);
-  text-align: center;
-  color: var(--pb-text);
-}
-
-.pb-kiosk__pin {
+.pb-kiosk__header,
+.pb-kiosk__footer {
   display: flex;
-  flex-direction: column;
-  gap: var(--pb-space-4);
-  max-width: 24rem;
-  margin: 0 auto;
-  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pb-space-5);
+  width: min(100%, var(--pb-content-max));
+  margin-inline: auto;
 }
 
-.pb-kiosk__pin input {
-  min-height: 64px;
-  font-size: var(--pb-type-h2);
+.pb-kiosk__footer {
+  justify-content: center;
+  color: var(--pb-text-secondary);
+  font-size: var(--pb-type-caption);
   text-align: center;
-  letter-spacing: 0.5em;
-  padding: var(--pb-space-4);
-  border: 2px solid var(--pb-border);
-  border-radius: var(--pb-radius);
-  background: var(--pb-field);
-  color: var(--pb-text);
 }
 
-.pb-kiosk__action {
-  min-height: 96px;
-  font-size: var(--pb-type-h2);
+.pb-kiosk__viewport {
+  display: grid;
+  min-block-size: 0;
+  place-items: center;
+  overflow-y: auto;
 }
 
-.pb-kiosk__result {
-  text-align: center;
-  font-size: var(--pb-type-h2);
-}
-
-/* Only one kiosk state is visible at a time. */
 .pb-kiosk__state[hidden] {
   display: none !important;
 }
 
 .pb-kiosk__state {
   display: grid;
+  width: min(100%, 38rem);
+  place-items: center;
+  animation: pb-kiosk-state-in var(--pb-motion-slow) var(--pb-ease-out);
+}
+
+.pb-kiosk__card {
+  display: grid;
+  width: 100%;
   gap: var(--pb-space-6);
-  align-content: center;
+  padding: clamp(var(--pb-space-6), 5vw, var(--pb-space-8));
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  background: var(--pb-layer);
+  box-shadow: var(--pb-shadow-raised), inset 0 1px 0 var(--pb-sheen);
+}
+
+.pb-kiosk__intro {
+  display: grid;
   justify-items: center;
-  height: 100%;
+  text-align: center;
+}
+
+.pb-kiosk__icon {
+  display: grid;
+  inline-size: 4.5rem;
+  block-size: 4.5rem;
+  place-items: center;
+  margin-block-end: var(--pb-space-6);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius-lg);
+  color: var(--pb-interactive);
+  background: var(--pb-interactive-soft);
+  box-shadow: inset 0 1px 0 var(--pb-sheen);
+}
+
+.pb-kiosk__icon svg {
+  inline-size: var(--pb-space-8);
+  block-size: var(--pb-space-8);
+}
+
+.pb-kiosk__title {
+  margin-block-end: var(--pb-space-3);
+  font-size: clamp(var(--pb-type-h1), 5vw, 2.75rem);
+  text-align: center;
+}
+
+.pb-kiosk__copy {
+  max-inline-size: 32rem;
+  margin-block-end: 0;
+  color: var(--pb-text-secondary);
+  text-align: center;
+}
+
+.pb-kiosk__name {
+  margin: 0;
+  color: var(--pb-text);
+  font-size: var(--pb-type-h2);
+  font-weight: 800;
+  text-align: center;
+}
+
+.pb-kiosk__pin {
+  display: grid;
+  gap: var(--pb-space-4);
+  width: 100%;
+}
+
+.pb-kiosk__pin label {
+  display: grid;
+  gap: var(--pb-space-2);
+  color: var(--pb-text);
+  font-size: var(--pb-type-caption);
+  font-weight: 700;
+}
+
+.pb-kiosk__pin input {
+  width: 100%;
+  min-block-size: 4rem;
+  padding: var(--pb-space-4) var(--pb-space-5);
+  border: 1px solid var(--pb-border-strong);
+  border-radius: var(--pb-radius);
+  color: var(--pb-text);
+  background: var(--pb-field);
+  font-size: var(--pb-type-h3);
+  text-align: center;
+  transition: border-color var(--pb-motion-fast) var(--pb-ease-out), box-shadow
+    var(--pb-motion-fast) var(--pb-ease-out);
+}
+
+.pb-kiosk__pin input:focus {
+  border-color: var(--pb-interactive);
+  box-shadow: 0 0 0 var(--pb-space-1) var(--pb-interactive-soft);
+}
+
+.pb-kiosk__pin input[data-pin] {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.45em;
+}
+
+.pb-kiosk__actions {
+  display: grid;
+  gap: var(--pb-space-3);
+}
+
+.pb-kiosk__actions [hidden] {
+  display: none;
+}
+
+.pb-kiosk__action {
+  width: 100%;
+  min-block-size: 4.75rem;
+  border-radius: var(--pb-radius);
+  font-size: var(--pb-type-body-lg);
+}
+
+.pb-kiosk__device {
+  padding: var(--pb-space-5);
+  border: 1px solid var(--pb-border);
+  border-radius: var(--pb-radius);
+  background: var(--pb-layer-raised);
+}
+
+.pb-kiosk__device-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pb-space-4);
+  margin-block-end: var(--pb-space-3);
+}
+
+.pb-kiosk__device h2 {
+  margin: 0;
+  font-size: var(--pb-type-body);
+  letter-spacing: -0.02em;
+}
+
+.pb-kiosk__device ul {
+  display: grid;
+  gap: var(--pb-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pb-kiosk__device li {
+  color: var(--pb-text-secondary);
+  font-size: var(--pb-type-caption);
+}
+
+.pb-kiosk__device li[data-device-state] {
+  display: flex;
+  align-items: center;
+  gap: var(--pb-space-2);
+  color: var(--pb-text);
+  font-weight: 700;
+}
+
+.pb-kiosk__device li[data-device-state]::before {
+  inline-size: var(--pb-space-3);
+  block-size: var(--pb-space-3);
+  flex: none;
+  border-radius: var(--pb-radius-pill);
+  background: var(--pb-support-success);
+  content: "";
+}
+
+.pb-kiosk__result {
+  justify-self: center;
+  margin: 0;
+  font-size: var(--pb-type-h3);
+  text-align: center;
+}
+
+.pb-form-error {
+  min-block-size: 1.5em;
+  margin: 0;
+  color: var(--pb-support-error);
+  font-size: var(--pb-type-caption);
+  font-weight: 700;
+  text-align: center;
+}
+
+@keyframes pb-kiosk-state-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--pb-space-5)) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 600px) {
+  .pb-kiosk {
+    padding: var(--pb-space-4);
+  }
+
+  .pb-kiosk__header .pb-chip {
+    display: none;
+  }
+
+  .pb-kiosk__card {
+    gap: var(--pb-space-5);
+    padding: var(--pb-space-5);
+    border-radius: var(--pb-radius);
+  }
+
+  .pb-kiosk__icon {
+    inline-size: 3.75rem;
+    block-size: 3.75rem;
+    margin-block-end: var(--pb-space-4);
+  }
+
+  .pb-kiosk__action {
+    min-block-size: 4rem;
+  }
+}
+
+@media (max-height: 720px) {
+  .pb-kiosk__footer {
+    display: none;
+  }
+
+  .pb-kiosk__icon {
+    margin-block-end: var(--pb-space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-kiosk__state {
+    animation: none;
+  }
 }
