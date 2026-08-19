@@ -23,7 +23,7 @@ def _staff_only(request: HttpRequest) -> HttpResponse | None:
 
 
 def _redirect() -> HttpResponse:
-    return redirect("/manager/console/#attendance")
+    return redirect("/manager/console/#work-hours")
 
 
 def _event_datetime(value: str) -> datetime:

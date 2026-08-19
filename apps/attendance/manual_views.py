@@ -38,7 +38,7 @@ def create_manual_shift(request: HttpRequest) -> HttpResponse:
         record_manual_shift(employee=employee, entry=entry, actor_id=str(request.user.pk))
     except ManualShiftConflict:
         return HttpResponse("기존 근무 기록과 시간이 겹칩니다.", status=409)
-    return redirect(f"/manager/console/?month={entry.started_at:%Y-%m}#attendance")
+    return redirect(f"/manager/console/?month={entry.started_at:%Y-%m}#work-hours")
 
 
 def _local_datetime(work_date: date, raw_time: str) -> datetime:
@@ -107,5 +107,5 @@ def create_manual_week(request: HttpRequest) -> HttpResponse:
         return HttpResponse("기존 근무 기록과 시간이 겹칩니다.", status=409)
 
     return redirect(
-        f"/manager/console/?month={week_start:%Y-%m}&employee={employee_code}#attendance"
+        f"/manager/console/?month={week_start:%Y-%m}&employee={employee_code}#work-hours"
     )

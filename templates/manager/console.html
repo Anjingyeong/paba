@@ -16,16 +16,16 @@
       <div class="pb-shell__brand">
         <a class="pb-brand" href="/" aria-label="홈">
           <span class="pb-brand__mark" aria-hidden="true">PB</span>
-          <span><strong>Manager</strong><small>Attendance & payroll</small></span>
+          <span><strong>Manager</strong><small>Payroll operations</small></span>
         </a>
       </div>
       <nav class="pb-shell__nav-list">
         <a href="#today" aria-current="page">이번 달</a>
         <a href="#employees">직원 관리</a>
-        <a href="#attendance">근무 달력</a>
+        <a href="#work-hours">근무시간 입력</a>
         <a href="#preview">급여명세서</a>
       </nav>
-      <div class="pb-shell__nav-meta"><strong>사용 순서</strong><span>직원 선택 → 달력 확인 → 시간 입력 → 명세서</span></div>
+      <div class="pb-shell__nav-meta"><strong>사용 순서</strong><span>직원 등록 → 주간 시간 입력 → 명세서</span></div>
     </aside>
 
     <main id="main-content" class="pb-shell__body">
@@ -99,23 +99,22 @@
             </div>
           </section>
 
-          <section id="attendance" class="pb-panel pb-manager-section" aria-labelledby="attendance-heading">
+          <section id="work-hours" class="pb-panel pb-manager-section" aria-labelledby="attendance-heading">
             <div class="pb-panel__header">
-              <div><p class="pb-eyebrow">근무시간</p><h2 id="attendance-heading">월 근무 달력</h2><p>일한 날짜와 시간을 한눈에 보고, 필요한 날만 눌러 입력하거나 수정하세요.</p></div>
+              <div><p class="pb-eyebrow">근무시간</p><h2 id="attendance-heading">주간 근무시간 입력</h2><p>직원과 주차를 고른 뒤 일한 날의 시작·종료 시간만 적으면 됩니다.</p></div>
             </div>
-            <form class="pb-worklog-filter" method="get" action="/manager/console/#attendance">
+            <form class="pb-worklog-filter" method="get" action="/manager/console/#work-hours">
               <label><span>직원</span><select class="pb-input" name="employee" required>
                 {% for employee in employee_rows %}
                   <option value="{{ employee.employee_code }}" {% if selected_employee and employee.pk == selected_employee.pk %}selected{% endif %}>{{ employee.display_name }} · {{ employee.employee_code }}</option>
                 {% endfor %}
               </select></label>
-              <label><span>조회 월</span><input class="pb-input" type="month" name="month" value="{{ selected_month|date:'Y-m' }}" /></label>
               <label><span>주 시작일</span><input class="pb-input" type="date" name="week" value="{{ week_start|date:'Y-m-d' }}" /></label>
               <button class="pb-btn pb-btn--secondary" type="submit">불러오기</button>
             </form>
 
             {% if selected_employee %}
-              <div class="pb-calendar-shell" aria-label="{{ selected_employee.display_name }} {{ selected_month|date:'Y년 n월' }} 근무 달력">
+              <div class="pb-calendar-shell" aria-label="{{ selected_employee.display_name }} {{ selected_month|date:'Y년 n월' }} 근무 달력" hidden>
                 <div class="pb-calendar-heading">
                   <div><strong>{{ selected_month|date:'Y년 n월' }}</strong><span>날짜를 누르면 새 시간을 입력하거나 저장된 기록을 수정할 수 있습니다.</span></div>
                   <span class="pb-calendar-total">이번 달 {% if selected_payroll_row %}{{ selected_payroll_row.total_hours|floatformat:1 }}시간{% else %}0시간{% endif %}</span>
@@ -149,7 +148,7 @@
               </div>
               <div class="pb-week-entry-tools">
                 <span>{% if copied_previous_week %}지난주 시간을 불러왔습니다. 바뀐 날만 수정하세요.{% else %}근무 패턴이 비슷하면 지난주 시간을 먼저 불러올 수 있습니다.{% endif %}</span>
-                <a class="pb-btn pb-btn--secondary" href="?month={{ selected_month|date:'Y-m' }}&employee={{ selected_employee.employee_code }}&week={{ week_start|date:'Y-m-d' }}&copy_previous=1#attendance">지난주 시간 불러오기</a>
+                <a class="pb-btn pb-btn--secondary" href="?month={{ selected_month|date:'Y-m' }}&employee={{ selected_employee.employee_code }}&week={{ week_start|date:'Y-m-d' }}&copy_previous=1#work-hours">지난주 시간 불러오기</a>
               </div>
               <form class="pb-week-entry" data-week-entry method="post" action="{% url 'attendance:create_manual_week' %}">
                 {% csrf_token %}
@@ -180,10 +179,10 @@
               <div class="pb-empty"><strong>직원을 먼저 등록해주세요.</strong></div>
             {% endif %}
 
-            <div class="pb-panel__header pb-worklog-history-heading">
+            <div class="pb-panel__header pb-worklog-history-heading" hidden>
               <div><h3>{{ selected_month|date:'Y년 n월' }} 저장 기록</h3><p>수정이 필요한 날만 아래에서 고치면 됩니다.</p></div>
             </div>
-            <div class="pb-table-wrap">
+            <div class="pb-table-wrap" hidden>
               <table class="pb-table">
                 <thead><tr><th scope="col">날짜</th><th scope="col">근무시간</th><th scope="col">상태</th><th scope="col">수정</th></tr></thead>
                 <tbody data-attendance-rows>
