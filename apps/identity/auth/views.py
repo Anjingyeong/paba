@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from typing import cast
 
+import pyotp
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -49,13 +50,54 @@ def manager_login(request: HttpRequest) -> HttpResponse:
         stamp_login(request.session)
         return redirect("manager_console")
 
-    # Only managers with a confirmed TOTP may proceed; anything else is a generic
-    # failure that reveals nothing.
-    if not services.has_confirmed_totp(cast(User, user)):
-        return render(request, "auth/login.html", {"error": GENERIC_ERROR}, status=401)
-
     request.session[PENDING_MFA_KEY] = user.pk
+    if not services.has_confirmed_totp(cast(User, user)):
+        return redirect("auth:mfa_setup")
     return redirect("auth:mfa")
+
+
+@require_http_methods(["GET", "POST"])
+def manager_mfa_setup(request: HttpRequest) -> HttpResponse:
+    """Enroll TOTP after a successful password login for a new manager."""
+    user_id = request.session.get(PENDING_MFA_KEY)
+    if not user_id:
+        return redirect("auth:login")
+
+    user = User.objects.filter(pk=user_id).first()
+    if user is None:
+        request.session.pop(PENDING_MFA_KEY, None)
+        return redirect("auth:login")
+
+    if services.has_confirmed_totp(user):
+        return redirect("auth:mfa")
+
+    secret = services.get_or_provision_totp_secret(user)
+    context = {
+        "secret": secret,
+        "provisioning_uri": pyotp.TOTP(secret).provisioning_uri(
+            name=user.username,
+            issuer_name="Paba",
+        ),
+    }
+
+    if request.method == "GET":
+        return render(request, "auth/mfa_setup.html", context)
+
+    if services.mfa_is_locked(user):
+        context["error"] = GENERIC_ERROR
+        return render(request, "auth/mfa_setup.html", context, status=429)
+
+    token = request.POST.get("token", "")
+    if not services.confirm_totp(user, token):
+        services.mfa_record_failure(user)
+        context["error"] = GENERIC_ERROR
+        return render(request, "auth/mfa_setup.html", context, status=401)
+
+    services.mfa_record_success(user)
+    request.session.pop(PENDING_MFA_KEY, None)
+    login(request, user)
+    stamp_login(request.session)
+    return redirect("manager_console")
 
 
 @require_http_methods(["GET", "POST"])

@@ -11,7 +11,9 @@ from django.test import Client, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
+from apps.core.crypto import decrypt
 from apps.identity.auth import services
+from apps.identity.auth.models import ManagerTOTP
 from apps.identity.auth.middleware import LAST_ACTIVITY_KEY, LOGIN_AT_KEY
 
 pytestmark = pytest.mark.django_db
@@ -80,6 +82,33 @@ def test_password_without_totp_does_not_authenticate() -> None:
     resp = client.post(reverse("auth:login"), {"username": "mgr", "password": PASSWORD})
     assert resp.status_code == 302  # moved to MFA step, not logged in
     assert "_auth_user_id" not in client.session
+
+
+def test_first_login_enrolls_totp_before_authenticating() -> None:
+    user = User.objects.create_user("fresh-manager", password=PASSWORD, is_staff=True)
+    client = Client()
+
+    resp = client.post(
+        reverse("auth:login"),
+        {"username": "fresh-manager", "password": PASSWORD},
+    )
+    assert resp.status_code == 302
+    assert resp.url == reverse("auth:mfa_setup")
+    assert "_auth_user_id" not in client.session
+
+    resp = client.get(reverse("auth:mfa_setup"))
+    assert resp.status_code == 200
+    record = ManagerTOTP.objects.get(user=user)
+    secret = decrypt(record.encrypted_secret)
+
+    resp = client.post(
+        reverse("auth:mfa_setup"),
+        {"token": pyotp.TOTP(secret).now()},
+    )
+    assert resp.status_code == 302
+    assert "_auth_user_id" in client.session
+    record.refresh_from_db()
+    assert record.is_confirmed is True
 
 
 def test_wrong_totp_is_rejected() -> None:

@@ -134,6 +134,14 @@ def provision_totp(user: User) -> str:
     return secret
 
 
+def get_or_provision_totp_secret(user: User) -> str:
+    """Return the current unconfirmed setup secret, or create one once."""
+    totp = ManagerTOTP.objects.filter(user=user).first()
+    if totp is not None and not totp.is_confirmed:
+        return decrypt(totp.encrypted_secret)
+    return provision_totp(user)
+
+
 def _totp_for(user: User) -> pyotp.TOTP | None:
     totp = ManagerTOTP.objects.filter(user=user).first()
     if totp is None:
