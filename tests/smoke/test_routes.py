@@ -16,13 +16,15 @@ from apps.identity.auth.middleware import stamp_login
 from apps.identity.models import AccountRole, Employee
 
 
-def test_home_renders_frontend_entry_points(client: Client) -> None:
+def test_home_renders_manager_entry_without_kiosk_link(client: Client) -> None:
     response = client.get("/")
 
     assert response.status_code == 200
     content = response.content.decode()
     assert 'class="pb-landing"' in content
-    assert 'href="/kiosk/"' in content
+    assert 'href="/kiosk/"' not in content
+    assert "출퇴근 키오스크" not in content
+    assert "PIN" not in content
     assert 'href="/manager/console/"' in content
 
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="파리바게뜨 매장 출결 및 급여 운영 워크스페이스" />
+  <meta name="description" content="파리바게뜨 매장 근무 기록 및 급여 운영 워크스페이스" />
   <title>파리바게뜨 인사·급여</title>
   <link rel="stylesheet" href="/assets/styles/tokens.css" />
   <link rel="stylesheet" href="/assets/styles/app.css" />
@@ -27,11 +27,11 @@
     <main id="main-content" class="pb-landing__main">
       <section class="pb-landing__hero" aria-labelledby="landing-title">
         <div class="pb-landing__hero-copy">
-          <p class="pb-eyebrow">Attendance · Payroll</p>
-          <h1 id="landing-title">출결과 급여,<br />매장 운영을 한곳에.</h1>
+          <p class="pb-eyebrow">Work Calendar · Payroll</p>
+          <h1 id="landing-title">근무 기록과 급여,<br />매장 운영을 한곳에.</h1>
           <p class="pb-landing__lead">
-            직원은 빠르게 출퇴근을 기록하고, 매니저는 실시간 근태와 급여 준비 상태를
-            차분하게 확인합니다.
+            직원별 근무시간을 달력에서 확인하고 수정한 뒤, 월 누적 시간과 예상 급여를
+            한 흐름에서 관리합니다.
           </p>
         </div>
         <figure class="pb-landing__visual">
@@ -39,7 +39,7 @@
             src="/assets/images/illustrations/bakery-operations.webp"
             width="1200"
             height="900"
-            alt="태블릿 출결 기기와 급여 문서, 계산기가 놓인 베이커리 매장 운영대"
+            alt="급여 문서와 달력, 계산기가 놓인 베이커리 매장 운영대"
             fetchpriority="high"
             decoding="async"
           />
@@ -47,35 +47,6 @@
       </section>
 
       <section class="pb-entry-grid" aria-label="업무 화면 선택">
-        <a class="pb-entry-card pb-entry-card--kiosk" href="/kiosk/">
-          <span class="pb-entry-card__visual">
-            <img
-              src="/assets/images/illustrations/employee-check-in.webp"
-              width="760"
-              height="693"
-              alt="장갑 낀 직원이 빵 옆의 출결 태블릿을 누르는 모습"
-              decoding="async"
-            />
-          </span>
-          <span class="pb-entry-card__content">
-            <span class="pb-entry-card__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" focusable="false">
-                <rect x="5" y="3" width="14" height="18" rx="3"></rect>
-                <path d="M9 7h6M9 11h6M10 17h4"></path>
-              </svg>
-            </span>
-            <span class="pb-entry-card__eyebrow">직원용</span>
-            <strong>출퇴근 키오스크</strong>
-            <span class="pb-entry-card__copy">직원 코드와 PIN으로 출근, 휴게, 퇴근을 빠르게 기록합니다.</span>
-            <span class="pb-entry-card__cta">
-              키오스크 열기
-              <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <path d="M4 10h11M11 6l4 4-4 4"></path>
-              </svg>
-            </span>
-          </span>
-        </a>
-
         <a class="pb-entry-card pb-entry-card--manager" href="/manager/console/">
           <span class="pb-entry-card__visual">
             <img
@@ -95,7 +66,7 @@
             </span>
             <span class="pb-entry-card__eyebrow">관리자용</span>
             <strong>매니저 콘솔</strong>
-            <span class="pb-entry-card__copy">실시간 근태, 급여 미리보기, 보험 대사와 마감 흐름을 확인합니다.</span>
+            <span class="pb-entry-card__copy">직원별 근무 달력, 월 누적 시간, 예상 급여와 마감 흐름을 확인합니다.</span>
             <span class="pb-entry-card__cta">
               콘솔 열기
               <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false">
