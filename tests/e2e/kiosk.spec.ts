@@ -6,13 +6,37 @@ import { expect, test } from "@playwright/test";
  * storage, and — after a success auto-lock — no PIN or name left in the DOM.
  */
 
-const KIOSK = "/templates/kiosk/states.html";
+const KIOSK = "/tests/e2e/fixtures/kiosk.html";
 
 const VIEWPORTS = [
   { name: "sm-375", width: 375, height: 720 },
   { name: "md-768", width: 768, height: 1024 },
   { name: "lg-1280", width: 1280, height: 800 },
 ];
+
+test.beforeEach(async ({ page }) => {
+  await page.route("**/kiosk/unlock/", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, employee_name: "E2E 직원", shift_state: "WORKING" }),
+    });
+  });
+  await page.route("**/kiosk/punch/", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ok: true, kind: "CLOCK_OUT" }),
+    });
+  });
+});
+
+async function unlockWorking(page: import("@playwright/test").Page): Promise<void> {
+  await page.getByRole("button", { name: "기록 시작" }).click();
+  await page.locator('input[name="employee_code"]').fill("EMP-E2E");
+  await page.locator("[data-pin]").fill("123456");
+  await page.getByRole("button", { name: "확인" }).click();
+}
 
 async function visibleState(page: import("@playwright/test").Page): Promise<string | null> {
   return page.evaluate(() => {
@@ -30,7 +54,8 @@ test("starts locked with exactly one state visible", async ({ page }) => {
 
 test("uses no web storage at any point", async ({ page }) => {
   await page.goto(KIOSK);
-  await page.getByRole("button", { name: "시작하기" }).click();
+  await page.getByRole("button", { name: "기록 시작" }).click();
+  await page.locator('input[name="employee_code"]').fill("EMP-E2E");
   await page.locator("[data-pin]").fill("123456");
   const storage = await page.evaluate(() => ({
     local: localStorage.length,
@@ -41,10 +66,9 @@ test("uses no web storage at any point", async ({ page }) => {
 
 test("success auto-locks and clears PIN and name", async ({ page }) => {
   await page.goto(KIOSK);
-  await page.getByRole("button", { name: "시작하기" }).click();
-  await page.locator("[data-pin]").fill("123456");
-  await page.getByRole("button", { name: "확인" }).click();
+  await unlockWorking(page);
   await page.getByRole("button", { name: "퇴근" }).click();
+  await expect(page.locator('.pb-kiosk__state[data-state="success"]')).toBeVisible();
   expect(await visibleState(page)).toBe("success");
 
   // Auto-lock within ~3s.
@@ -68,8 +92,7 @@ for (const vp of VIEWPORTS) {
 
     test("no overflow and no serious axe violations on key states", async ({ page }) => {
       await page.goto(KIOSK);
-      for (const step of [null, "시작하기", "확인"]) {
-        if (step) await page.getByRole("button", { name: step }).click();
+      const assertPage = async () => {
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
         );
@@ -79,14 +102,21 @@ for (const vp of VIEWPORTS) {
           (v) => v.impact === "serious" || v.impact === "critical",
         );
         expect(blocking, JSON.stringify(blocking, null, 2)).toEqual([]);
-      }
+      };
+      await assertPage();
+      await page.getByRole("button", { name: "기록 시작" }).click();
+      await assertPage();
+      await page.locator('input[name="employee_code"]').fill("EMP-E2E");
+      await page.locator("[data-pin]").fill("123456");
+      await page.getByRole("button", { name: "확인" }).click();
+      await assertPage();
     });
 
     test("touch targets in the PIN state are >= 44x44", async ({ page }) => {
       await page.goto(KIOSK);
-      await page.getByRole("button", { name: "시작하기" }).click();
+      await page.getByRole("button", { name: "기록 시작" }).click();
       const targets = page.locator(
-        '.pb-kiosk__state[data-state="pin"] .pb-btn, .pb-kiosk__state[data-state="pin"] input',
+        '.pb-kiosk__state[data-state="pin"] .pb-btn, .pb-kiosk__state[data-state="pin"] input:not([type="hidden"])',
       );
       const count = await targets.count();
       expect(count).toBeGreaterThan(0);

@@ -26,6 +26,7 @@ django.setup()
 from django.contrib.auth.models import User  # noqa: E402
 from django.db import transaction  # noqa: E402
 from django.db.backends.postgresql.psycopg_any import DateRange  # noqa: E402
+from django.utils import timezone  # noqa: E402
 
 from apps.attendance.models import PunchKind  # noqa: E402
 from apps.attendance.services import approvals, corrections  # noqa: E402
@@ -74,8 +75,22 @@ def main() -> None:
         result = activate_device(create_pairing_code(manager), "매장 태블릿")
         assert result is not None
         dev = result.device
-        ci = record_punch(employee=emp, kind=PunchKind.CLOCK_IN, idempotency_key="s-in", device=dev)
-        record_punch(employee=emp, kind=PunchKind.CLOCK_OUT, idempotency_key="s-out", device=dev)
+        clock_in = timezone.make_aware(dt.datetime(2026, 7, 10, 9, 0))
+        clock_out = timezone.make_aware(dt.datetime(2026, 7, 10, 17, 0))
+        ci = record_punch(
+            employee=emp,
+            kind=PunchKind.CLOCK_IN,
+            idempotency_key="s-in",
+            device=dev,
+            now=clock_in,
+        )
+        record_punch(
+            employee=emp,
+            kind=PunchKind.CLOCK_OUT,
+            idempotency_key="s-out",
+            device=dev,
+            now=clock_out,
+        )
         approvals.approve_shift(manager=manager, shift=ci.shift)
 
         # Payable time -> base pay (rate the segments at the effective wage).

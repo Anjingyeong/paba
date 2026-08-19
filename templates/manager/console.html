@@ -20,48 +20,203 @@
         </a>
       </div>
       <nav class="pb-shell__nav-list">
-        <a href="#today" aria-current="page">오늘 현황</a>
-        <a href="#attendance">근무 기록</a>
+        <a href="#today" aria-current="page">이번 달</a>
+        <a href="#employees">직원 관리</a>
+        <a href="#attendance">근무 달력</a>
         <a href="#preview">급여명세서</a>
       </nav>
-      <div class="pb-shell__nav-meta"><strong>핵심 흐름</strong><span>출결 확인 후 월 급여명세서를 내려받습니다.</span></div>
+      <div class="pb-shell__nav-meta"><strong>사용 순서</strong><span>직원 선택 → 달력 확인 → 시간 입력 → 명세서</span></div>
     </aside>
 
     <main id="main-content" class="pb-shell__body">
       <div class="pb-shell__body-inner">
         <header id="today" class="pb-manager-hero">
           <div>
-            <p class="pb-eyebrow">Store operations</p>
-            <h1>출결과 급여를 한 번에</h1>
-            <p>태블릿에서 기록된 근무시간을 확인하고 월별 급여명세서를 내려받으세요.</p>
+            <p class="pb-eyebrow">월 급여 관리</p>
+            <h1>근무시간만 적으면 급여까지</h1>
+            <p>직원별로 한 주의 근무시간을 적어두면 월 누계와 급여명세서가 이어집니다.</p>
           </div>
           <span class="pb-chip">관리자 전용</span>
         </header>
 
         <section class="pb-manager-grid" aria-label="운영 요약">
-          <article class="pb-stat"><span class="pb-stat__label">근무 기록</span><strong class="pb-stat__value">{{ attendance_rows|length }}</strong></article>
-          <article class="pb-stat"><span class="pb-stat__label">급여 대상 직원</span><strong class="pb-stat__value">{{ payroll_rows|length }}</strong></article>
-          <article class="pb-stat"><span class="pb-stat__label">선택 월</span><strong class="pb-stat__value">{{ selected_month|date:"Y.m" }}</strong></article>
+          <article class="pb-stat"><span class="pb-stat__label">선택 직원</span><strong class="pb-stat__value">{% if selected_employee %}{{ selected_employee.display_name }}{% else %}-{% endif %}</strong></article>
+          <article class="pb-stat"><span class="pb-stat__label">이번 달 누적</span><strong class="pb-stat__value">{% if selected_payroll_row %}{{ selected_payroll_row.total_hours|floatformat:1 }}h{% else %}0h{% endif %}</strong></article>
+          <article class="pb-stat"><span class="pb-stat__label">예상 기본급</span><strong class="pb-stat__value">{% if selected_payroll_row %}{{ selected_payroll_row.gross_pay }}원{% else %}0원{% endif %}</strong></article>
         </section>
 
         <div class="pb-manager-stack">
+          {% if messages %}
+            <section aria-label="처리 결과">
+              {% for message in messages %}
+                <p class="pb-status {% if message.tags == 'error' %}pb-status--warning{% else %}pb-status--success{% endif %}">{{ message }}</p>
+              {% endfor %}
+            </section>
+          {% endif %}
+
+          <section id="employees" class="pb-panel pb-manager-section" aria-labelledby="employees-heading">
+            <div class="pb-panel__header">
+              <div><p class="pb-eyebrow">직원</p><h2 id="employees-heading">직원 관리</h2><p>이름, 입사일, 시급만 등록하면 됩니다.</p></div>
+            </div>
+            <form class="pb-wage-form" method="post" action="{% url 'identity_manager:create_employee' %}">
+              {% csrf_token %}
+              <input class="pb-input" name="employee_code" placeholder="직원 코드 (예: EMP-001)" maxlength="20" required />
+              <input class="pb-input" name="display_name" placeholder="직원 이름" maxlength="60" required />
+              <input class="pb-input" type="date" name="hire_date" required />
+              <input class="pb-input" name="hourly_wage" inputmode="numeric" placeholder="시급" required />
+              <button class="pb-btn" type="submit">직원 등록</button>
+            </form>
+            <div class="pb-table-wrap">
+              <table class="pb-table">
+                <thead><tr><th scope="col">직원</th><th scope="col">입사일</th><th scope="col">상태</th><th scope="col">관리</th></tr></thead>
+                <tbody>
+                  {% for employee in employee_rows %}
+                    <tr>
+                      <td data-label="직원"><strong>{{ employee.display_name }}</strong><br /><small>{{ employee.employee_code }}</small></td>
+                      <td data-label="입사일">{{ employee.hire_date|date:"Y-m-d" }}</td>
+                      <td data-label="상태">
+                        {% if employee.leave_date %}
+                          <span class="pb-status">퇴사 · {{ employee.leave_date|date:"Y-m-d" }}</span>
+                        {% else %}
+                          <span class="pb-status pb-status--success"><span class="pb-status__dot"></span>재직</span>
+                        {% endif %}
+                      </td>
+                      <td data-label="관리">
+                        {% if not employee.leave_date %}
+                          <form method="post" action="{% url 'identity_manager:terminate_employee' employee.employee_code %}" style="display:inline">
+                            {% csrf_token %}<input class="pb-input" type="date" name="leave_date" aria-label="퇴사일" /><button class="pb-btn pb-btn--secondary" type="submit">퇴사 처리</button>
+                          </form>
+                        {% else %}
+                          <span>처리 완료</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% empty %}
+                    <tr><td colspan="4"><div class="pb-empty"><strong>등록된 직원이 없습니다</strong><span>위 입력란에서 첫 직원을 등록해주세요.</span></div></td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           <section id="attendance" class="pb-panel pb-manager-section" aria-labelledby="attendance-heading">
             <div class="pb-panel__header">
-              <div><p class="pb-eyebrow">Attendance</p><h2 id="attendance-heading">실시간 근무 기록</h2><p>태블릿에서 저장한 출근·퇴근 기록입니다.</p></div>
-              <span class="pb-status pb-status--success"><span class="pb-status__dot"></span>서버 연결됨</span>
+              <div><p class="pb-eyebrow">근무시간</p><h2 id="attendance-heading">월 근무 달력</h2><p>일한 날짜와 시간을 한눈에 보고, 필요한 날만 눌러 입력하거나 수정하세요.</p></div>
+            </div>
+            <form class="pb-worklog-filter" method="get" action="/manager/console/#attendance">
+              <label><span>직원</span><select class="pb-input" name="employee" required>
+                {% for employee in employee_rows %}
+                  <option value="{{ employee.employee_code }}" {% if selected_employee and employee.pk == selected_employee.pk %}selected{% endif %}>{{ employee.display_name }} · {{ employee.employee_code }}</option>
+                {% endfor %}
+              </select></label>
+              <label><span>조회 월</span><input class="pb-input" type="month" name="month" value="{{ selected_month|date:'Y-m' }}" /></label>
+              <label><span>주 시작일</span><input class="pb-input" type="date" name="week" value="{{ week_start|date:'Y-m-d' }}" /></label>
+              <button class="pb-btn pb-btn--secondary" type="submit">불러오기</button>
+            </form>
+
+            {% if selected_employee %}
+              <div class="pb-calendar-shell" aria-label="{{ selected_employee.display_name }} {{ selected_month|date:'Y년 n월' }} 근무 달력">
+                <div class="pb-calendar-heading">
+                  <div><strong>{{ selected_month|date:'Y년 n월' }}</strong><span>날짜를 누르면 새 시간을 입력하거나 저장된 기록을 수정할 수 있습니다.</span></div>
+                  <span class="pb-calendar-total">이번 달 {% if selected_payroll_row %}{{ selected_payroll_row.total_hours|floatformat:1 }}시간{% else %}0시간{% endif %}</span>
+                </div>
+                <div class="pb-calendar-weekdays" aria-hidden="true">
+                  <span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span>
+                </div>
+                <div class="pb-calendar-grid">
+                  {% for calendar_week in calendar_weeks %}
+                    {% for day in calendar_week %}
+                      {% if day.in_month %}
+                        <a class="pb-calendar-day {% if day.shift_count %}pb-calendar-day--worked{% endif %}" href="{{ day.href }}" data-calendar-day="{{ day.date|date:'Y-m-d' }}" {% if day.shift_count %}data-calendar-worked="true"{% endif %} aria-label="{{ day.date|date:'n월 j일' }} {% if day.shift_count %}{{ day.hours|floatformat:1 }}시간, 기록 수정{% else %}근무시간 입력{% endif %}">
+                          <span class="pb-calendar-day__date">{{ day.date|date:'j' }}</span>
+                          {% if day.shift_count %}
+                            <strong class="pb-calendar-day__hours">{{ day.hours|floatformat:1 }}h</strong>
+                            <span class="pb-calendar-day__hint">{% if day.shift_count > 1 %}{{ day.shift_count }}건 · 수정{% else %}수정{% endif %}</span>
+                          {% else %}
+                            <span class="pb-calendar-day__empty">입력</span>
+                          {% endif %}
+                        </a>
+                      {% else %}
+                        <span class="pb-calendar-day pb-calendar-day--outside" aria-hidden="true"><span class="pb-calendar-day__date">{{ day.date|date:'j' }}</span></span>
+                      {% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div id="quick-entry" class="pb-quick-entry-heading">
+                <div><p class="pb-eyebrow">빠른 입력</p><h3>주간 근무시간 입력</h3><p>반복되는 근무표는 여기서 한 번에 적는 편이 빠릅니다.</p></div>
+              </div>
+              <div class="pb-week-entry-tools">
+                <span>{% if copied_previous_week %}지난주 시간을 불러왔습니다. 바뀐 날만 수정하세요.{% else %}근무 패턴이 비슷하면 지난주 시간을 먼저 불러올 수 있습니다.{% endif %}</span>
+                <a class="pb-btn pb-btn--secondary" href="?month={{ selected_month|date:'Y-m' }}&employee={{ selected_employee.employee_code }}&week={{ week_start|date:'Y-m-d' }}&copy_previous=1#attendance">지난주 시간 불러오기</a>
+              </div>
+              <form class="pb-week-entry" data-week-entry method="post" action="{% url 'attendance:create_manual_week' %}">
+                {% csrf_token %}
+                <input type="hidden" name="employee_code" value="{{ selected_employee.employee_code }}" />
+                <input type="hidden" name="week_start" value="{{ week_start|date:'Y-m-d' }}" />
+                <input type="hidden" name="batch_id" value="{{ manual_entry_batch_id }}" />
+                <div class="pb-table-wrap">
+                  <table class="pb-table pb-week-table">
+                    <thead><tr><th scope="col">날짜</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">메모</th></tr></thead>
+                    <tbody>
+                      {% for day in week_days %}
+                        <tr data-week-entry-row {% if day.is_focus %}class="pb-week-entry-row--focus"{% endif %}>
+                          <td data-label="날짜"><strong>{{ day.date|date:'m/d' }} ({{ day.name }})</strong></td>
+                          <td data-label="시작"><input class="pb-input" type="time" name="start_{{ day.index }}" value="{{ day.start_value }}" aria-label="{{ day.date|date:'m/d' }} {{ day.name }}요일 시작" /></td>
+                          <td data-label="종료"><input class="pb-input" type="time" name="end_{{ day.index }}" value="{{ day.end_value }}" aria-label="{{ day.date|date:'m/d' }} {{ day.name }}요일 종료" /></td>
+                          <td data-label="메모"><input class="pb-input" name="note_{{ day.index }}" maxlength="100" placeholder="선택" aria-label="{{ day.date|date:'m/d' }} 메모" /></td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                <div class="pb-week-entry__footer">
+                  <span>쉬는 날은 비워두면 됩니다. 자정을 넘긴 근무는 종료 시간을 다음날로 자동 처리합니다.</span>
+                  <button class="pb-btn" type="submit">이번 주 저장</button>
+                </div>
+              </form>
+            {% else %}
+              <div class="pb-empty"><strong>직원을 먼저 등록해주세요.</strong></div>
+            {% endif %}
+
+            <div class="pb-panel__header pb-worklog-history-heading">
+              <div><h3>{{ selected_month|date:'Y년 n월' }} 저장 기록</h3><p>수정이 필요한 날만 아래에서 고치면 됩니다.</p></div>
             </div>
             <div class="pb-table-wrap">
               <table class="pb-table">
-                <thead><tr><th scope="col">직원</th><th scope="col">근무 시작</th><th scope="col">상태</th></tr></thead>
+                <thead><tr><th scope="col">날짜</th><th scope="col">근무시간</th><th scope="col">상태</th><th scope="col">수정</th></tr></thead>
                 <tbody data-attendance-rows>
                   {% for attendance_row in attendance_rows %}
                     <tr data-attendance-row>
-                      <td data-label="직원">{{ attendance_row.employee.display_name }} · {{ attendance_row.employee.employee_code }}</td>
-                      <td data-label="근무 시작">{{ attendance_row.opened_at|date:"Y-m-d H:i" }}</td>
-                      <td data-label="상태"><span class="pb-status {% if attendance_row.is_open %}pb-status--success{% endif %}"><span class="pb-status__dot"></span>{% if attendance_row.is_open %}근무 중{% else %}근무 완료{% endif %}</span></td>
+                      <td id="record-{{ attendance_row.shift_id }}" data-label="날짜">{{ attendance_row.started_at|date:"m/d" }}</td>
+                      <td data-label="근무시간">{% if attendance_row.worked_hours is not None %}<strong>{{ attendance_row.worked_hours|floatformat:1 }}시간</strong><br />{% endif %}{{ attendance_row.started_at|date:"H:i" }} ~ {% if attendance_row.ended_at %}{{ attendance_row.ended_at|date:"H:i" }}{% else %}근무 중{% endif %}</td>
+                      <td data-label="승인">
+                        {% if attendance_row.approval_status == 'APPROVED' %}
+                          <span class="pb-status pb-status--success"><span class="pb-status__dot"></span>승인 완료</span>
+                        {% elif attendance_row.approval_status == 'STALE' %}
+                          <span class="pb-status pb-status--warning">재승인 필요</span>
+                        {% else %}
+                          <span class="pb-status pb-status--warning">승인 대기</span>
+                        {% endif %}
+                      </td>
+                      <td data-label="수정/관리">
+                        {% if attendance_row.is_open %}
+                          <span>근무 중</span>
+                        {% else %}
+                          {% if attendance_row.approval_status != 'APPROVED' %}<form method="post" action="{% url 'attendance:approve_shift' attendance_row.shift_id %}" style="display:inline">{% csrf_token %}<button class="pb-btn pb-btn--secondary" type="submit">승인</button></form>{% endif %}
+                          <form method="post" action="{% url 'attendance:correct_shift_times' attendance_row.shift_id %}">
+                            {% csrf_token %}
+                            <input class="pb-input" type="datetime-local" name="started_at" value="{{ attendance_row.started_input }}" required />
+                            <input class="pb-input" type="datetime-local" name="ended_at" value="{{ attendance_row.ended_input }}" required />
+                            <input class="pb-input" name="reason" maxlength="500" placeholder="수정 사유" required />
+                            <button class="pb-btn pb-btn--secondary" type="submit">시간 수정 후 승인</button>
+                          </form>
+                        {% endif %}
+                      </td>
                     </tr>
                   {% empty %}
-                    <tr data-attendance-empty><td colspan="3"><div class="pb-empty"><strong>근무 기록이 없습니다</strong><span>표시할 실시간 근태 기록이 없습니다.</span></div></td></tr>
+                    <tr data-attendance-empty><td colspan="4"><div class="pb-empty"><strong>아직 입력된 시간이 없습니다</strong><span>위 주간 표에 시간을 적고 저장해주세요.</span></div></td></tr>
                   {% endfor %}
                 </tbody>
               </table>
@@ -70,12 +225,18 @@
 
           <section id="preview" class="pb-panel pb-manager-section" aria-labelledby="payroll-heading">
             <div class="pb-panel__header">
-              <div><p class="pb-eyebrow">Monthly payroll</p><h2 id="payroll-heading">월 급여명세서</h2><p>직원별 시급을 저장하면 해당 월 근무시간으로 기본급이 계산됩니다.</p></div>
+              <div><p class="pb-eyebrow">월 급여</p><h2 id="payroll-heading">월 급여명세서</h2><p>저장한 근무시간과 시급을 합산해 월 급여를 계산합니다.</p></div>
               <form class="pb-month-picker" method="get" action="/manager/console/">
                 <label><span>조회 월</span><input class="pb-input" type="month" name="month" value="{{ selected_month|date:'Y-m' }}" /></label>
                 <button class="pb-btn pb-btn--secondary" type="submit">조회</button>
               </form>
             </div>
+            <form class="pb-wage-form" method="post" action="{% url 'payroll:update_payroll_settings' %}">
+              {% csrf_token %}
+              <label><span>다음 달 급여 지급일</span><input class="pb-input" type="number" min="1" max="28" name="payroll_pay_day" value="{% if store.payroll_pay_day %}{{ store.payroll_pay_day }}{% endif %}" placeholder="예: 5" required /></label>
+              <label><input type="checkbox" name="auto_payroll_close_enabled" {% if store.auto_payroll_close_enabled %}checked{% endif %} /> 전월 급여 자동 마감 사용</label>
+              <button class="pb-btn pb-btn--secondary" type="submit">자동화 설정 저장</button>
+            </form>
             <div class="pb-table-wrap">
               <table class="pb-table">
                 <thead><tr><th scope="col">직원</th><th scope="col">근무시간</th><th scope="col">시급</th><th scope="col">기본급</th><th scope="col">상태</th></tr></thead>
@@ -104,10 +265,23 @@
             </div>
             <div class="pb-payroll-actions">
               {% if payroll_export_ready %}
+                <span class="pb-status pb-status--success">마감 완료 · v{{ payroll_snapshot.version }}</span>
                 <a class="pb-btn" href="{% url 'payroll:download_statements' %}?month={{ selected_month|date:'Y-m' }}">급여명세서 ZIP 다운로드</a>
+                <form method="post" action="{% url 'payroll:reopen_month' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="month" value="{{ selected_month|date:'Y-m' }}" />
+                  <input class="pb-input" name="reason" maxlength="500" placeholder="재오픈 사유" required />
+                  <button class="pb-btn pb-btn--secondary" type="submit">마감 취소 후 수정</button>
+                </form>
               {% else %}
-                <button class="pb-btn" type="button" disabled>급여명세서 ZIP 다운로드</button>
-                <span>모든 직원의 시급과 근태 오류를 먼저 확인해주세요.</span>
+                <form method="post" action="{% url 'payroll:close_month' %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="month" value="{{ selected_month|date:'Y-m' }}" />
+                  <label><span>급여 지급일</span><input class="pb-input" type="date" name="pay_date" required /></label>
+                  <input class="pb-input" name="reason" maxlength="500" placeholder="마감 메모 (선택)" />
+                  <button class="pb-btn" type="submit">월 급여 계산 · 마감</button>
+                </form>
+                <span>마감하면 현재 승인된 근태와 시급을 스냅샷으로 고정합니다.</span>
               {% endif %}
             </div>
           </section>

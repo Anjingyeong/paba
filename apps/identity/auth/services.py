@@ -88,6 +88,11 @@ def verify_employee_pin(employee_code: str, pin: str) -> PinResult:
         check_password(pin, _DUMMY_HASH)
         return PinResult(ok=False)
 
+    today = timezone.localdate()
+    is_employed = record.employee.hire_date <= today and (
+        record.employee.leave_date is None or record.employee.leave_date >= today
+    )
+
     if (
         settings.DEBUG
         and master_pin
@@ -98,7 +103,11 @@ def verify_employee_pin(employee_code: str, pin: str) -> PinResult:
     if record.locked_until is not None and record.locked_until > now:
         return PinResult(ok=False, locked=True)
 
-    if check_password(pin, record.pin_hash):
+    password_ok = check_password(pin, record.pin_hash)
+    if not is_employed:
+        return PinResult(ok=False)
+
+    if password_ok:
         if record.failed_attempts or record.locked_until:
             record.failed_attempts = 0
             record.locked_until = None

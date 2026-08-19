@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>출퇴근 기록 E2E</title>
+  <link rel="stylesheet" href="/assets/styles/tokens.css" />
+  <link rel="stylesheet" href="/assets/styles/app.css" />
+  <link rel="stylesheet" href="/assets/styles/kiosk.css" />
+</head>
+<body>
+  <div class="pb-kiosk" role="application" aria-label="출퇴근 기록">
+    <header class="pb-kiosk__header">
+      <span class="pb-brand"><span class="pb-brand__mark" aria-hidden="true">PB</span><span><strong>Attendance</strong><small>Employee kiosk</small></span></span>
+      <span class="pb-chip">출퇴근 기록</span>
+    </header>
+
+    <p class="pb-visually-hidden" data-live aria-live="polite" role="status"></p>
+    <main class="pb-kiosk__viewport">
+      <section class="pb-kiosk__state" data-state="locked" data-announce="출퇴근 기록 시작 화면입니다">
+        <div class="pb-kiosk__card">
+          <div class="pb-kiosk__intro">
+            <p class="pb-eyebrow">Employee attendance</p>
+            <h1 class="pb-kiosk__title">근무를 기록하세요</h1>
+            <p class="pb-kiosk__copy">직원 코드와 PIN으로 확인한 뒤 출근 또는 퇴근을 누르면 됩니다.</p>
+          </div>
+          <button type="button" class="pb-btn pb-kiosk__action" data-start>기록 시작</button>
+          <section class="pb-kiosk__device" aria-labelledby="device-heading-e2e">
+            <div class="pb-kiosk__device-header"><h2 id="device-heading-e2e">매장 태블릿</h2></div>
+            <ul><li data-device-empty>실시간 기기 상태가 없습니다.</li></ul>
+          </section>
+        </div>
+      </section>
+
+      <section class="pb-kiosk__state" data-state="pin" data-announce="직원 코드와 PIN을 입력하세요" hidden>
+        <div class="pb-kiosk__card">
+          <div class="pb-kiosk__intro"><h1 class="pb-kiosk__title">직원 확인</h1></div>
+          <form class="pb-kiosk__pin" data-unlock-form>
+            <input type="hidden" name="csrfmiddlewaretoken" value="e2e" />
+            <label><span>직원 코드</span><input name="employee_code" autocomplete="off" required /></label>
+            <label><span>PIN</span><input name="pin" data-pin type="password" inputmode="numeric" maxlength="6" required /></label>
+            <p class="pb-form-error" data-kiosk-error role="alert"></p>
+            <div class="pb-kiosk__actions">
+              <button type="submit" class="pb-btn pb-kiosk__action">확인</button>
+              <button type="button" class="pb-btn pb-btn--secondary" data-lock>취소</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="pb-kiosk__state" data-state="action" data-announce="현재 근무 상태를 확인했습니다" hidden>
+        <div class="pb-kiosk__card">
+          <div class="pb-kiosk__intro">
+            <p class="pb-kiosk__name" data-employee-name></p>
+            <h1 class="pb-kiosk__title" data-shift-state>근무 상태</h1>
+          </div>
+          <div class="pb-kiosk__actions">
+            <button type="button" class="pb-btn pb-kiosk__action" data-punch="CLOCK_IN">출근</button>
+            <button type="button" class="pb-btn pb-kiosk__action" data-punch="BREAK_START">휴게 시작</button>
+            <button type="button" class="pb-btn pb-kiosk__action" data-punch="BREAK_END">휴게 종료</button>
+            <button type="button" class="pb-btn pb-btn--secondary pb-kiosk__action" data-punch="CLOCK_OUT">퇴근</button>
+            <button type="button" class="pb-btn pb-btn--text" data-lock>취소</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="pb-kiosk__state" data-state="success" data-announce="근무 기록이 저장되었습니다" hidden>
+        <div class="pb-kiosk__card">
+          <div class="pb-kiosk__intro">
+            <p class="pb-kiosk__result pb-status pb-status--success"><span class="pb-status__dot"></span><span data-punch-result>기록되었습니다</span></p>
+            <h1 class="pb-kiosk__title">처리가 완료되었습니다</h1>
+          </div>
+          <button type="button" class="pb-btn pb-btn--secondary" data-lock>확인</button>
+        </div>
+      </section>
+    </main>
+    <footer class="pb-kiosk__footer">기록은 서버 시간으로 안전하게 저장됩니다.</footer>
+  </div>
+  <script type="module" src="/assets/vendor/kiosk.js"></script>
+</body>
+</html>

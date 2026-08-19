@@ -3,90 +3,88 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>점장 콘솔</title>
+  <title>급여 관리</title>
   <link rel="stylesheet" href="/assets/styles/tokens.css" />
   <link rel="stylesheet" href="/assets/styles/app.css" />
+  <link rel="stylesheet" href="/assets/styles/manager.css" />
 </head>
 <body>
   <div class="pb-shell">
-    <nav class="pb-shell__nav" aria-label="점장 내비게이션">
-      <a href="#today" aria-current="page">오늘 현황</a>
-      <a href="#exceptions">예외 큐</a>
-      <a href="#preview">급여 미리보기</a>
-      <a href="#insurance">보험 대사</a>
-      <a href="#close">마감/재오픈</a>
-      <a href="#exports">내보내기</a>
-      <a href="#audit">감사 기록</a>
+    <nav class="pb-shell__nav" aria-label="급여 관리 내비게이션">
+      <div class="pb-shell__nav-list">
+        <a href="#today" aria-current="page">이번 달</a>
+        <a href="#employees">직원 관리</a>
+        <a href="#attendance">근무 달력</a>
+        <a href="#preview">급여명세서</a>
+      </div>
     </nav>
 
     <main class="pb-shell__body">
-      <section id="today" class="pb-section" aria-labelledby="today-h">
-        <h1 id="today-h">오늘 현황</h1>
-        <p>실시간 근태 기록을 표시합니다.</p>
-      </section>
+      <div class="pb-shell__body-inner">
+        <section id="today" class="pb-panel pb-manager-section" aria-labelledby="today-h">
+          <h1 id="today-h">근무시간만 적으면 급여까지</h1>
+          <p>직원별로 주간 근무시간을 기록하고 월 급여를 확인합니다.</p>
+        </section>
 
-      <section id="exceptions" class="pb-section" aria-labelledby="exc-h">
-        <h2 id="exc-h">실시간 근태 기록</h2>
-        <div class="pb-table-wrap">
-          <table class="pb-table">
-            <thead>
-              <tr><th scope="col">직원</th><th scope="col">근무 시작</th><th scope="col">상태</th></tr>
-            </thead>
-            <tbody data-attendance-rows>
-              <tr data-attendance-empty><td colspan="3">표시할 실시간 근태 기록이 없습니다.</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section id="preview" class="pb-section" aria-labelledby="prev-h">
-        <h2 id="prev-h">급여 미리보기</h2>
-        <p>마감 전 확인 화면입니다.</p>
-      </section>
-
-      <section id="insurance" class="pb-section" aria-labelledby="ins-h">
-        <h2 id="ins-h">보험 대사</h2>
-        <form onsubmit="return false">
-          <label class="pb-field">
-            <span>건강보험 기관 고지액</span>
-            <input class="pb-input" name="health_final" inputmode="numeric" />
-          </label>
-          <label class="pb-field">
-            <span>사유</span>
-            <input class="pb-input" name="reason" />
-          </label>
-          <button type="button" class="pb-btn">대사 완료</button>
-        </form>
-      </section>
-
-      <section id="close" class="pb-section" aria-labelledby="close-h">
-        <h2 id="close-h">월마감 / 재오픈</h2>
-        <button type="button" class="pb-btn" data-confirm="reopen-dialog">재오픈</button>
-        <dialog id="reopen-dialog" aria-label="재오픈 확인">
-          <form method="dialog" class="pb-field">
-            <p>재오픈하려면 사유를 입력하세요.</p>
-            <label>
-              <span>사유</span>
-              <input class="pb-input" data-reason name="reason" />
-            </label>
-            <button type="button" class="pb-btn" data-submit disabled>확인</button>
-            <button type="button" class="pb-btn pb-btn--secondary" data-cancel>취소</button>
+        <section id="attendance" class="pb-panel pb-manager-section" aria-labelledby="attendance-h">
+          <div class="pb-panel__header">
+            <div><h2 id="attendance-h">월 근무 달력</h2><p>일한 날짜를 눌러 입력합니다.</p></div>
+          </div>
+          <form class="pb-worklog-filter" onsubmit="return false">
+            <label><span>직원</span><select class="pb-input" name="employee"><option>김직원 · EMP-001</option></select></label>
+            <label><span>조회 월</span><input class="pb-input" type="month" name="month" value="2026-07" /></label>
+            <label><span>주 시작일</span><input class="pb-input" type="date" name="week" value="2026-07-06" /></label>
+            <button class="pb-btn pb-btn--secondary" type="button">불러오기</button>
           </form>
-        </dialog>
-      </section>
 
-      <section id="exports" class="pb-section" aria-labelledby="exp-h">
-        <h2 id="exp-h">내보내기</h2>
-        <p>내보내기 기록은 이 화면에서 제공하지 않습니다.</p>
-      </section>
 
-      <section id="audit" class="pb-section" aria-labelledby="audit-h">
-        <h2 id="audit-h">감사 기록</h2>
-        <p>감사 기록은 이 화면에서 제공하지 않습니다.</p>
-      </section>
+          <div class="pb-calendar-shell" aria-label="김직원 2026년 7월 근무 달력">
+            <div class="pb-calendar-heading"><div><strong>2026년 7월</strong><span>날짜를 누르면 시간을 입력할 수 있습니다.</span></div><span class="pb-calendar-total">이번 달 0시간</span></div>
+            <div class="pb-calendar-weekdays" aria-hidden="true"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div>
+            <div class="pb-calendar-grid"><span class="pb-calendar-day pb-calendar-day--outside" aria-hidden="true"><span class="pb-calendar-day__date">29</span></span><span class="pb-calendar-day pb-calendar-day--outside" aria-hidden="true"><span class="pb-calendar-day__date">30</span></span><a class="pb-calendar-day" data-calendar-day="2026-07-01" href="#quick-entry" aria-label="7월 1일 근무시간 입력"><span class="pb-calendar-day__date">1</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-02" href="#quick-entry" aria-label="7월 2일 근무시간 입력"><span class="pb-calendar-day__date">2</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-03" href="#quick-entry" aria-label="7월 3일 근무시간 입력"><span class="pb-calendar-day__date">3</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-04" href="#quick-entry" aria-label="7월 4일 근무시간 입력"><span class="pb-calendar-day__date">4</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-05" href="#quick-entry" aria-label="7월 5일 근무시간 입력"><span class="pb-calendar-day__date">5</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-06" href="#quick-entry" aria-label="7월 6일 근무시간 입력"><span class="pb-calendar-day__date">6</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-07" href="#quick-entry" aria-label="7월 7일 근무시간 입력"><span class="pb-calendar-day__date">7</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-08" href="#quick-entry" aria-label="7월 8일 근무시간 입력"><span class="pb-calendar-day__date">8</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-09" href="#quick-entry" aria-label="7월 9일 근무시간 입력"><span class="pb-calendar-day__date">9</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-10" href="#quick-entry" aria-label="7월 10일 근무시간 입력"><span class="pb-calendar-day__date">10</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-11" href="#quick-entry" aria-label="7월 11일 근무시간 입력"><span class="pb-calendar-day__date">11</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-12" href="#quick-entry" aria-label="7월 12일 근무시간 입력"><span class="pb-calendar-day__date">12</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-13" href="#quick-entry" aria-label="7월 13일 근무시간 입력"><span class="pb-calendar-day__date">13</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-14" href="#quick-entry" aria-label="7월 14일 근무시간 입력"><span class="pb-calendar-day__date">14</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-15" href="#quick-entry" aria-label="7월 15일 근무시간 입력"><span class="pb-calendar-day__date">15</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-16" href="#quick-entry" aria-label="7월 16일 근무시간 입력"><span class="pb-calendar-day__date">16</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-17" href="#quick-entry" aria-label="7월 17일 근무시간 입력"><span class="pb-calendar-day__date">17</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-18" href="#quick-entry" aria-label="7월 18일 근무시간 입력"><span class="pb-calendar-day__date">18</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-19" href="#quick-entry" aria-label="7월 19일 근무시간 입력"><span class="pb-calendar-day__date">19</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-20" href="#quick-entry" aria-label="7월 20일 근무시간 입력"><span class="pb-calendar-day__date">20</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-21" href="#quick-entry" aria-label="7월 21일 근무시간 입력"><span class="pb-calendar-day__date">21</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-22" href="#quick-entry" aria-label="7월 22일 근무시간 입력"><span class="pb-calendar-day__date">22</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-23" href="#quick-entry" aria-label="7월 23일 근무시간 입력"><span class="pb-calendar-day__date">23</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-24" href="#quick-entry" aria-label="7월 24일 근무시간 입력"><span class="pb-calendar-day__date">24</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-25" href="#quick-entry" aria-label="7월 25일 근무시간 입력"><span class="pb-calendar-day__date">25</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-26" href="#quick-entry" aria-label="7월 26일 근무시간 입력"><span class="pb-calendar-day__date">26</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-27" href="#quick-entry" aria-label="7월 27일 근무시간 입력"><span class="pb-calendar-day__date">27</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-28" href="#quick-entry" aria-label="7월 28일 근무시간 입력"><span class="pb-calendar-day__date">28</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-29" href="#quick-entry" aria-label="7월 29일 근무시간 입력"><span class="pb-calendar-day__date">29</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-30" href="#quick-entry" aria-label="7월 30일 근무시간 입력"><span class="pb-calendar-day__date">30</span><span class="pb-calendar-day__empty">입력</span></a><a class="pb-calendar-day" data-calendar-day="2026-07-31" href="#quick-entry" aria-label="7월 31일 근무시간 입력"><span class="pb-calendar-day__date">31</span><span class="pb-calendar-day__empty">입력</span></a><span class="pb-calendar-day pb-calendar-day--outside" aria-hidden="true"><span class="pb-calendar-day__date">1</span></span><span class="pb-calendar-day pb-calendar-day--outside" aria-hidden="true"><span class="pb-calendar-day__date">2</span></span></div>
+          </div>
+
+          <div id="quick-entry" class="pb-quick-entry-heading"><h3>주간 근무시간 입력</h3><p>반복 근무는 한 번에 적습니다.</p></div>
+          <form class="pb-week-entry" data-week-entry onsubmit="return false">
+            <div class="pb-table-wrap">
+              <table class="pb-table pb-week-table">
+                <thead><tr><th scope="col">날짜</th><th scope="col">시작</th><th scope="col">종료</th><th scope="col">메모</th></tr></thead>
+                <tbody>
+                  <tr data-week-entry-row><td>07/06 (월)</td><td><input class="pb-input" type="time" aria-label="월요일 시작" /></td><td><input class="pb-input" type="time" aria-label="월요일 종료" /></td><td><input class="pb-input" aria-label="월요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/07 (화)</td><td><input class="pb-input" type="time" aria-label="화요일 시작" /></td><td><input class="pb-input" type="time" aria-label="화요일 종료" /></td><td><input class="pb-input" aria-label="화요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/08 (수)</td><td><input class="pb-input" type="time" aria-label="수요일 시작" /></td><td><input class="pb-input" type="time" aria-label="수요일 종료" /></td><td><input class="pb-input" aria-label="수요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/09 (목)</td><td><input class="pb-input" type="time" aria-label="목요일 시작" /></td><td><input class="pb-input" type="time" aria-label="목요일 종료" /></td><td><input class="pb-input" aria-label="목요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/10 (금)</td><td><input class="pb-input" type="time" aria-label="금요일 시작" /></td><td><input class="pb-input" type="time" aria-label="금요일 종료" /></td><td><input class="pb-input" aria-label="금요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/11 (토)</td><td><input class="pb-input" type="time" aria-label="토요일 시작" /></td><td><input class="pb-input" type="time" aria-label="토요일 종료" /></td><td><input class="pb-input" aria-label="토요일 메모" /></td></tr>
+                  <tr data-week-entry-row><td>07/12 (일)</td><td><input class="pb-input" type="time" aria-label="일요일 시작" /></td><td><input class="pb-input" type="time" aria-label="일요일 종료" /></td><td><input class="pb-input" aria-label="일요일 메모" /></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pb-week-entry__footer"><span>입력한 시간은 저장과 동시에 급여 계산에 반영됩니다.</span><button class="pb-btn" type="button">이번 주 저장</button></div>
+          </form>
+
+          <div class="pb-table-wrap">
+            <table class="pb-table">
+              <tbody data-attendance-rows><tr data-attendance-empty><td>아직 입력된 시간이 없습니다. 위 주간 표에 시간을 적고 저장해주세요.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="preview" class="pb-panel pb-manager-section" aria-labelledby="preview-h">
+          <h2 id="preview-h">월 급여명세서</h2>
+          <button type="button" class="pb-btn" data-confirm="reopen-dialog">재오픈</button>
+          <dialog id="reopen-dialog" aria-label="재오픈 확인">
+            <form method="dialog" class="pb-field">
+              <p>재오픈하려면 사유를 입력하세요.</p>
+              <label><span>사유</span><input class="pb-input" data-reason name="reason" /></label>
+              <button type="button" class="pb-btn" data-submit disabled>확인</button>
+              <button type="button" class="pb-btn pb-btn--secondary" data-cancel>취소</button>
+            </form>
+          </dialog>
+        </section>
+      </div>
     </main>
   </div>
-
   <script type="module" src="/assets/vendor/manager.js"></script>
 </body>
 </html>

@@ -20,6 +20,8 @@ node_modules/
 assets/vendor/
 
 # Evidence & scratch
+.chatgpt2codex/
+.test-runtime/
 .omo/evidence/
 .omo/ulw-loop/
 test-results/

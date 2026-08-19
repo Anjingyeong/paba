@@ -2,10 +2,9 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
 /**
- * Manager console acceptance: the fixed-sidenav / scroll-body shell stays usable
- * across 375/768/1280 and at 200% zoom with an honest empty table, keyboard focus, no
- * horizontal overflow, and zero serious/critical axe violations. Sensitive actions
- * require a typed reason.
+ * Manager payroll acceptance: employee-first calendar review plus weekly quick entry stays usable
+ * across 375/768/1280 and at 200% zoom with an honest empty history, keyboard focus,
+ * no horizontal overflow, and zero serious/critical axe violations.
  */
 
 const CONSOLE = "/tests/e2e/fixtures/manager-console-empty.html";
@@ -16,14 +15,29 @@ const VIEWPORTS = [
   { name: "lg-1280", width: 1280, height: 800 },
 ];
 
-test("keeps the empty attendance fixture honest without fabricated rows", async ({ page }) => {
+test("keeps the empty worklog honest without fabricated rows", async ({ page }) => {
   await page.goto(CONSOLE);
   await expect(page.locator("[data-attendance-row]")).toHaveCount(0);
   await expect(page.locator("[data-attendance-empty]")).toHaveCount(1);
   await expect(page.locator("[data-attendance-empty]")).toContainText(
-    "표시할 실시간 근태 기록이 없습니다.",
+    "아직 입력된 시간이 없습니다.",
   );
   await expect(page.locator("body")).not.toContainText("EMP-0001");
+});
+
+test("offers a full monthly calendar and seven-row weekly quick entry", async ({ page }) => {
+  await page.goto(CONSOLE);
+  await expect(page.locator('select[name="employee"]')).toHaveCount(1);
+  await expect(page.locator("[data-calendar-day]")).toHaveCount(31);
+  await expect(page.getByRole("heading", { name: "월 근무 달력" })).toBeVisible();
+  await expect(page.locator("[data-week-entry-row]")).toHaveCount(7);
+  await expect(page.getByRole("button", { name: "이번 주 저장" })).toBeVisible();
+});
+
+test("calendar day jumps to quick entry", async ({ page }) => {
+  await page.goto(CONSOLE);
+  await page.locator('[data-calendar-day="2026-07-06"]').click();
+  await expect(page.locator("#quick-entry")).toBeVisible();
 });
 
 test("reopen requires a typed reason", async ({ page }) => {
@@ -39,7 +53,7 @@ for (const vp of VIEWPORTS) {
   test.describe(`viewport ${vp.name}`, () => {
     test.use({ viewport: { width: vp.width, height: vp.height } });
 
-    test("no horizontal overflow with the attendance table", async ({ page }) => {
+    test("no horizontal overflow with calendar and weekly entry", async ({ page }) => {
       await page.goto(CONSOLE);
       await page.locator("[data-attendance-empty]").waitFor();
       const overflow = await page.evaluate(

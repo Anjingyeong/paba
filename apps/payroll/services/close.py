@@ -17,8 +17,9 @@ from datetime import date, datetime, time
 from django.db import transaction
 from django.utils import timezone
 
-from apps.attendance.models import PunchEvent, Shift
+from apps.attendance.models import Shift
 from apps.attendance.services.approvals import APPROVED, approval_status
+from apps.attendance.services.month_scope import effective_shift_window
 from apps.auditlog import services as audit
 from apps.payroll.models import EmploymentTerms
 from apps.payroll.models.close import PayrollPeriod, PayrollSnapshot, PeriodStatus
@@ -84,6 +85,8 @@ def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
     blockers: set[str] = set()
     month = period.month
     business_date = timezone.localdate()
+    if business_date < _first_of_next_month(month):
+        blockers.add("PERIOD_NOT_ENDED")
     # Timezone-aware month bounds so DateTimeField comparisons are exact.
     month_start = timezone.make_aware(datetime.combine(month, time.min))
     month_end = timezone.make_aware(datetime.combine(_first_of_next_month(month), time.min))
@@ -91,22 +94,17 @@ def collect_blockers(period: PayrollPeriod, payload: dict) -> list[str]:
     # An attendance shift still open *within this month* blocks the close. A shift
     # open in a later month (e.g. someone currently clocked in) is irrelevant to a
     # prior month's close.
-    open_in_month = Shift.objects.filter(
-        closed_at__isnull=True,
-        events__occurred_at__gte=month_start,
-        events__occurred_at__lt=month_end,
-    ).exists()
+    open_in_month = any(
+        effective_shift_window(shift, start=month_start, end=month_end).touches
+        for shift in Shift.objects.filter(closed_at__isnull=True)
+    )
     if open_in_month:
         blockers.add("OPEN_SHIFT")
 
     # Every shift touching the month must be approved at its current state.
-    shift_ids = (
-        PunchEvent.objects.filter(occurred_at__gte=month_start, occurred_at__lt=month_end)
-        .values_list("shift_id", flat=True)
-        .distinct()
-    )
-    for shift in Shift.objects.filter(pk__in=list(shift_ids)):
-        if approval_status(shift) != APPROVED:
+    for shift in Shift.objects.filter(closed_at__isnull=False):
+        scoped = effective_shift_window(shift, start=month_start, end=month_end)
+        if scoped.touches and approval_status(shift) != APPROVED:
             blockers.add("UNAPPROVED_CORRECTION")
             break
 

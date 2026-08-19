@@ -1,5 +1,6 @@
-# EventBridge Scheduler runs `prepare_payroll_periods` once a day (Asia/Seoul) as a
-# one-off Fargate task, so the previous month's DRAFT period is always ready.
+# EventBridge Scheduler safely attempts the previous month's payroll close every day.
+# The command is idempotent: it skips disabled/unready/already-closed periods and
+# never automatically recloses a period that a manager explicitly reopened.
 
 data "aws_iam_policy_document" "scheduler_assume" {
   statement {
@@ -34,7 +35,7 @@ resource "aws_iam_role_policy" "scheduler" {
 
 resource "aws_scheduler_schedule" "prepare_periods" {
   name                         = "${var.project}-prepare-periods"
-  schedule_expression          = "cron(0 1 1 * ? *)"
+  schedule_expression          = "cron(0 1 * * ? *)"
   schedule_expression_timezone = "Asia/Seoul"
 
   flexible_time_window {
@@ -60,7 +61,7 @@ resource "aws_scheduler_schedule" "prepare_periods" {
       containerOverrides = [
         {
           name    = "app"
-          command = ["uv", "run", "python", "manage.py", "prepare_payroll_periods"]
+          command = ["uv", "run", "python", "manage.py", "finalize_previous_payroll"]
         }
       ]
     })

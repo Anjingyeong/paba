@@ -15,6 +15,7 @@ from datetime import date
 
 from django.contrib.postgres.fields import DateRangeField
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -32,6 +33,13 @@ class Store(TimeStampedModel):
     SINGLETON_PK = 1
 
     name = models.CharField(max_length=120)
+    payroll_pay_day = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(28)],
+        help_text="Day of the following month used as the payroll payment date.",
+    )
+    auto_payroll_close_enabled = models.BooleanField(default=False)
 
     class Meta:
         constraints = [

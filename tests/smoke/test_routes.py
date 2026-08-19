@@ -125,5 +125,5 @@ def test_manager_console_empty_state(client: Client) -> None:
 
     assert response.status_code == 200
     content = response.content.decode()
-    assert "표시할 실시간 근태 기록이 없습니다." in content
+    assert "아직 입력된 시간이 없습니다" in content
     assert "<tr data-attendance-row>" not in content

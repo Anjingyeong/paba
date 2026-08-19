@@ -10,8 +10,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from apps.attendance.models import Shift
-from apps.attendance.services.corrections import effective_events
-from apps.attendance.services.time_calculation import calculate
+from apps.attendance.services.month_scope import effective_shift_window
 from apps.exports.statement import LineItem, StatementData
 from apps.identity.models import Employee
 from apps.payroll.models import HourlyWage
@@ -72,21 +71,19 @@ def monthly_payroll_lines(month: date) -> list[MonthlyPayrollLine]:
             .order_by("-pk")
             .first()
         )
-        shifts = (
-            Shift.objects.filter(
-                employee=employee,
-                events__occurred_at__gte=month_start,
-                events__occurred_at__lt=month_end,
-            )
-            .distinct()
-            .order_by("opened_at", "pk")
-        )
+        # One store has a small enough history that correctness wins over a clever
+        # raw-event query. Corrections can move a shift across a month boundary, so
+        # attribution must be decided from the effective corrected event sequence.
+        shifts = Shift.objects.filter(employee=employee).order_by("opened_at", "pk")
         blockers: set[str] = set()
         rated_segments: list[RatedSegment] = []
         total_hours = Decimal(0)
 
         for shift in shifts:
-            result = calculate(effective_events(shift))
+            scoped = effective_shift_window(shift, start=month_start, end=month_end)
+            if not scoped.touches:
+                continue
+            result = scoped.time_result
             blockers.update(result.blockers)
             for segment in result.segments:
                 if not month_start <= segment.start < month_end:

@@ -19,6 +19,7 @@ urlpatterns = [
         name="manager_console",
     ),
     path("manager/", include("apps.identity.auth.urls")),
+    path("", include("apps.identity.manager_urls")),
     path("", include("apps.payroll.urls")),
     path("", include("apps.devices.urls")),
     path("", include("apps.attendance.urls")),
